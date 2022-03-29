@@ -39,10 +39,10 @@ syntax:
 # Supported devices
 
 * SteelSeries Apex 100
- * Missing button remapping (though it may not be a driver feature :/)
+  * Missing button remapping (though it may not be a driver feature :/)
 * SteelSeries Rival 3 Wireless
- * Missing RGB configurations
- * Missing button remapping
+  * Missing RGB configurations
+  * Missing button remapping
 
 And others coming! There isn't much stuff yet here, because I don't have
 many Fancy Devices™... I do have a SteelSeries Rival 100 & 110, and just
@@ -70,9 +70,9 @@ You can also look for TODOs using:
 # Long term goals
 
 * [ ] Configuration saving and loading
- * [ ] Multiple configurations for each device
+  * [ ] Multiple configurations for each device
 * [ ] Make the driver a daemon that can be interacted with using a socket
- * [ ] Nicer (GUI?) front end
+  * [ ] Nicer (GUI?) front end
 * [ ] Easy to use API for writing drivers, and interacting with them
 * [ ] More device support
 
