@@ -3,30 +3,53 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <optional>
 #include <stdexcept>
 
 // TODO: Do this properly.
 std::string config_manager::get_default_filepath(std::optional<std::string>)
 {
-	std::string const& home_dir     = std::getenv("HOME");
-	auto const& default_config_path = home_dir + "/.config/openfdd/config.json";
-	return default_config_path;
+	auto const path = "/etc/openfdd.d/";
+	// TODO: Should this be somewhere else?
+	if (!std::filesystem::exists(path))
+		std::filesystem::create_directories(path);
+	return path;
 }
 
-bool config_manager::device_has_config(std::string device_id) const noexcept
+config_manager::config_manager(std::string path) : m_path(path)
 {
-	return m_config.contains(device_id);
+	if (!std::filesystem::exists(path))
+		throw std::runtime_error("File not found: " + path);
 }
 
-nlohmann::json config_manager::get_device_config(std::string device_id) const
+bool config_manager::device_has_config(std::string config_id) const noexcept
 {
-	return m_config[device_id];
+	return std::filesystem::exists(m_path + config_id + ".json");
 }
 
-void config_manager::sync_to_disk() const
+nlohmann::json config_manager::create_config_for(std::string config_id) const
 {
-	std::ofstream stream(m_path);
-	stream << m_config.dump().c_str();
-	stream.close();
+	if (device_has_config(config_id)) return get_device_config(config_id);
+
+	nlohmann::json new_config(nlohmann::json::value_t::object);
+
+	std::ofstream config_output(m_path + config_id + ".json");
+	config_output << new_config;
+	return new_config;
+}
+
+nlohmann::json config_manager::get_device_config(std::string config_id) const
+{
+	if (!device_has_config(config_id)) return create_config_for(config_id);
+
+	std::ifstream config(m_path + config_id + ".json");
+	return nlohmann::json::parse(config);
+}
+
+void config_manager::update_config(std::string           config_id,
+                                   nlohmann::json const& config) const
+{
+	std::ofstream config_output(m_path + config_id + ".json");
+	config_output << config;
 }

@@ -15,22 +15,15 @@ class config_manager
 	static std::string get_default_filepath(
 	    std::optional<std::string> fallback = {});
 
-	config_manager(std::string path) : m_path(path)
-	{
-		if (!std::filesystem::exists(path))
-			throw std::runtime_error("File not found: " + path);
-		std::fstream file(path);
-		m_config = nlohmann::json::parse(file);
-		file.close();
-	}
+	config_manager(std::string path);
+	bool           device_has_config(std::string config_id) const noexcept;
+	nlohmann::json create_config_for(std::string config_id) const;
 
-	bool device_has_config(std::string device_id) const noexcept;
+	nlohmann::json get_device_config(std::string config_id) const;
 
-	nlohmann::json get_device_config(std::string device_id) const;
-
-	void sync_to_disk() const;
+	void update_config(std::string           config_id,
+	                   nlohmann::json const& config) const;
 
   private:
-	std::string    m_path;
-	nlohmann::json m_config;
+	std::string m_path;
 };

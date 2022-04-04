@@ -29,24 +29,43 @@ class apex_100 : public driver
 	         std::shared_ptr<config_manager> config)
 	    : driver(dev, config)
 	{
+		deserialize_config(config->get_device_config(config_id()));
 	}
 
 	static bool is_compatible(std::shared_ptr<usb_device>);
+
+	std::string config_id() const noexcept final
+	{
+		return "steelseries:apex_100";
+	}
 
 	const std::string name() const noexcept final
 	{
 		return "SteelSeries Apex 100";
 	};
+
 	const std::unordered_map<std::string, action const> get_actions()
 	    const noexcept final;
 
 	void run_action(std::string const&              action_id,
-	                std::vector<std::string> const& parameters) const final;
+	                std::vector<std::string> const& parameters) final;
 
 	void set_backlight_luminosity(std::uint8_t) const;
 	void set_backlight_pattern(backlight_pattern) const;
 	void set_polling_interval(std::uint8_t) const;
 	void save() const;
+
+  protected:
+	nlohmann::json serialize_current_config() const noexcept override final;
+	void           deserialize_config(
+	              nlohmann::json const& config_on_disk) override final;
+
+  private:
+	struct {
+		std::uint8_t      backlight_luminosity;
+		backlight_pattern pattern;
+		std::uint8_t      polling_interval;
+	} m_config;
 };
 
 class rival_3_wireless : public driver
@@ -56,14 +75,14 @@ class rival_3_wireless : public driver
 	                 std::shared_ptr<config_manager> config)
 	    : driver(dev, config)
 	{
-		init_config();
+		deserialize_config(config->get_device_config(config_id()));
 	}
 
 	static bool is_compatible(std::shared_ptr<usb_device>);
 
-	static std::string get_id() noexcept
+	std::string config_id() const noexcept final
 	{
-		return std::to_string(steelseries::vendor_id) + ":1830";
+		return "steelseries:apex_100";
 	}
 
 	const std::string name() const noexcept final
@@ -71,14 +90,11 @@ class rival_3_wireless : public driver
 		return "SteelSeries Rival 3 Wireless";
 	};
 
-	// TODO: This should be on class driver
-	void init_config() noexcept;
-
 	const std::unordered_map<std::string, action const> get_actions()
 	    const noexcept final;
 
 	void run_action(std::string const&              action_id,
-	                std::vector<std::string> const& parameters) const final;
+	                std::vector<std::string> const& parameters) final;
 
 	void set_static_color(std::uint8_t r, std::uint8_t g, std::uint8_t b) const;
 	void set_dpi(std::uint8_t               active_profile_id,
@@ -89,10 +105,12 @@ class rival_3_wireless : public driver
 	                             std::uint16_t sleep_time) const;
 	void save() const;
 
+  protected:
+	nlohmann::json serialize_current_config() const noexcept override final;
+	void           deserialize_config(
+	              nlohmann::json const& config_on_disk) override final;
+
   private:
-	// TODO: Save to file!
-	// TODO: Make a `class configurable_driver: public driver{}` with config
-	//       saving options
 	struct {
 		std::vector<std::uint16_t> dpi_values{400, 800, 1200, 2400, 3200};
 		std::uint8_t               active_profile          = 1;

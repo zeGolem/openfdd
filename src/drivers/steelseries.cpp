@@ -67,7 +67,7 @@ const std::unordered_map<std::string, action const> apex_100::get_actions()
 }
 
 void apex_100::run_action(std::string const&              action_id,
-                          std::vector<std::string> const& parameters) const
+                          std::vector<std::string> const& parameters)
 {
 	if (action_id == "backlight_luminosity") {
 		if (parameters.size() < 1)
@@ -85,7 +85,9 @@ void apex_100::run_action(std::string const&              action_id,
 			                         parameters[0] + ")");
 		}
 
+		m_config.backlight_luminosity = backlight_value;
 		set_backlight_luminosity(backlight_value);
+		save_config();
 
 	} else if (action_id == "polling_interval") {
 		if (parameters.size() < 1)
@@ -102,7 +104,9 @@ void apex_100::run_action(std::string const&              action_id,
 			                         parameters[0] + ")");
 		}
 
+		m_config.polling_interval = polling_interval;
 		set_polling_interval(polling_interval);
+		save_config();
 
 	} else if (action_id == "backlight_patterns") {
 		if (parameters.size() < 1)
@@ -123,10 +127,13 @@ void apex_100::run_action(std::string const&              action_id,
 		else
 			throw std::runtime_error("Invalid backlight pattern");
 
+		m_config.pattern = pattern;
 		set_backlight_pattern(pattern);
+		save_config();
 
 	} else if (action_id == "save") {
 		save();
+		save_config();
 
 	} else
 		throw std::runtime_error("Invalid action id: " + action_id);
@@ -186,17 +193,30 @@ void apex_100::save() const
 	m_device->control_transfer(0x21, 0x09, 0x0200, 1, {0x09}, 1000);
 }
 
+nlohmann::json apex_100::serialize_current_config() const noexcept
+{
+	return {
+	    {"backlight_luminosity", m_config.backlight_luminosity},
+	    {   "backlight_pattern",              m_config.pattern},
+	    {    "polling_interval",     m_config.polling_interval},
+	};
+}
+
+void apex_100::deserialize_config(nlohmann::json const& config_on_disk)
+{
+	m_config.backlight_luminosity =
+	    config_on_disk.value("backlight_luminosity", 0);
+	m_config.pattern =
+	    config_on_disk.value("backlight_pattern", backlight_pattern::static_);
+	m_config.polling_interval = config_on_disk.value("polling_interval", 1);
+}
+
 bool rival_3_wireless::is_compatible(std::shared_ptr<usb_device> device)
 {
 	auto id = device->get_id();
 	if (id.id_vendor == steelseries::vendor_id && id.id_product == 0x1830)
 		return true;
 	return false;
-}
-
-void rival_3_wireless::init_config() noexcept
-{
-	// TODO
 }
 
 const std::unordered_map<std::string, action const> rival_3_wireless::
@@ -295,11 +315,11 @@ const std::unordered_map<std::string, action const> rival_3_wireless::
 	};
 }
 
-void rival_3_wireless::run_action(
-    std::string const&              action_id,
-    std::vector<std::string> const& parameters) const
+void rival_3_wireless::run_action(std::string const&              action_id,
+                                  std::vector<std::string> const& parameters)
 {
 	if (action_id == "static_color") {
+		throw std::runtime_error("Not implemented.");
 		if (parameters.size() < 1)
 			throw std::runtime_error("Missig arguements for static_color");
 
@@ -329,8 +349,9 @@ void rival_3_wireless::run_action(
 			throw std::runtime_error("Couldn't parse number.");
 		}
 
-		// TODO: Save set profile!
+		m_config.active_profile = profile;
 		set_dpi(profile, m_config.dpi_values);
+		save_config();
 
 	} else if (action_id == "dpi_presset_config") {
 		if (parameters.size() < 2)
@@ -354,10 +375,9 @@ void rival_3_wireless::run_action(
 			throw std::runtime_error("Couldn't parse number.");
 		}
 
-		// TODO: Save to m_config
-		auto dpi_values         = m_config.dpi_values;
-		dpi_values[profile - 1] = new_value;
-		set_dpi(m_config.active_profile, dpi_values);
+		m_config.dpi_values[profile - 1] = new_value;
+		set_dpi(m_config.active_profile, m_config.dpi_values);
+		save_config();
 
 	} else if (action_id == "set_poll_interval") {
 		if (parameters.size() < 1)
@@ -374,6 +394,7 @@ void rival_3_wireless::run_action(
 			throw std::runtime_error("Couldn't parse number.");
 		}
 
+		// TODO: Save to m_config
 		set_poll_interval(interval);
 
 	} else if (action_id == "ultra_power_saving") {
@@ -383,9 +404,10 @@ void rival_3_wireless::run_action(
 
 		bool is_active = parameters[0] == "true";
 
-		// TODO: Save to the config!
+		m_config.ultra_power_saving_mode = is_active;
 		set_powersaving_options(
 		    is_active, m_config.smart_lighting_mode, m_config.sleep_time);
+		save_config();
 
 	} else if (action_id == "smart_lighting") {
 		if (parameters.size() < 1)
@@ -393,9 +415,10 @@ void rival_3_wireless::run_action(
 
 		bool is_active = parameters[0] == "true";
 
-		// TODO: Save to the config!
+		m_config.smart_lighting_mode = is_active;
 		set_powersaving_options(
 		    m_config.ultra_power_saving_mode, is_active, m_config.sleep_time);
+		save_config();
 
 	} else if (action_id == "sleep_time") {
 		if (parameters.size() < 1)
@@ -413,13 +436,13 @@ void rival_3_wireless::run_action(
 			throw std::runtime_error("Couldn't parse number");
 		}
 
-		// TODO: Save to the config!
+		m_config.sleep_time = sleep_time;
 		set_powersaving_options(m_config.ultra_power_saving_mode,
 		                        m_config.smart_lighting_mode,
 		                        sleep_time);
+		save_config();
 
 	} else if (action_id == "save") {
-		// TODO: Save to disk here!
 		save();
 
 	} else
@@ -575,6 +598,35 @@ void rival_3_wireless::set_static_color(std::uint8_t r,
 
 		// m_device->control_transfer(0x21, 0x09, 0x0200, 3, data, 1000);
 	}
+}
+
+nlohmann::json rival_3_wireless::serialize_current_config() const noexcept
+{
+	return {
+	    {             "dpi_values",              m_config.dpi_values},
+	    {	     "active_profile",          m_config.active_profile},
+	    {"ultra_power_saving_mode", m_config.ultra_power_saving_mode},
+	    {    "smart_lighting_mode",     m_config.smart_lighting_mode},
+	    {             "sleep_time",              m_config.sleep_time},
+	};
+}
+
+// TODO: Check if values are valid?
+void rival_3_wireless::deserialize_config(nlohmann::json const& config_on_disk)
+{
+	auto const& config_dpi_values =
+	    config_on_disk.value<std::vector<std::uint16_t>>("dpi_values", {});
+	m_config.dpi_values = config_dpi_values;
+
+	m_config.active_profile = config_on_disk.value("active_profile", 1);
+
+	m_config.ultra_power_saving_mode =
+	    config_on_disk.value("ultra_power_saving_mode", false);
+
+	m_config.smart_lighting_mode =
+	    config_on_disk.value("smart_lighting_mode", true);
+
+	m_config.sleep_time = config_on_disk.value("sleep_time", 300);
 }
 
 } // namespace steelseries
