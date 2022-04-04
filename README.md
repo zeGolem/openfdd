@@ -7,6 +7,8 @@ like gaming mice and keyboards with macros, RGB lighting, and lots of
 features that are usually configured from the manufacturer's proprietary
 software.
 
+[See a demo on Reddit!](https://www.reddit.com/r/linux/comments/ts1u78/openfdd_a_userspace_driver_im_working_on_for/)
+
 # Building and running
 
 ## Dependecies
