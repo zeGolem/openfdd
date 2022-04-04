@@ -9,6 +9,16 @@ software.
 
 # Building and running
 
+## Dependecies
+
+This project uses *libusb-1.0*. Make sure to install it from your distro's
+repositories.
+
+nlohmann's json library is also used, but it's bundled in the repo, so no
+need to download anything extra.
+
+## Building
+
 Once you cloned the repo, you can build a binary with:
 
 ```console
@@ -18,6 +28,8 @@ Once you cloned the repo, you can build a binary with:
 Note that this make a dev build, with debugging symbols and sanitizers
 enabled, this isn't great for day-to-day use :/  
 ... But this project isn't yet ready for day-to-day use anyways!
+
+## Runing
 
 Now run it with:
 
