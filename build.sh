@@ -4,7 +4,9 @@ set -ex;
 
 # TODO: Better build system?
 
-g++ src/*.cpp src/**/*.cpp       \
+SOURCES="src/*.cpp src/drivers/*/*.cpp"
+
+g++ $SOURCES                     \
 	-lusb-1.0                    \
 	-Isrc/                       \
 	-fsanitize=address,undefined \

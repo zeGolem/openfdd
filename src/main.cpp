@@ -1,6 +1,7 @@
 #include "config.hpp"
 #include "drivers/driver.hpp"
-#include "drivers/steelseries.hpp"
+#include "drivers/steelseries/apex_100.hpp"
+#include "drivers/steelseries/rival_3_wireless.hpp"
 #include "usb.hpp"
 #include <cstddef>
 #include <cstdint>
