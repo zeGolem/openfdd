@@ -1,5 +1,6 @@
 #include "config.hpp"
 #include "drivers/driver.hpp"
+#include "drivers/steelseries/aerox_3_wireless.hpp"
 #include "drivers/steelseries/apex_100.hpp"
 #include "drivers/steelseries/rival_3_wireless.hpp"
 #include "usb.hpp"
@@ -19,6 +20,7 @@ std::shared_ptr<drivers::driver> get_driver_if_available(
 
 	check_driver(drivers::steelseries::apex_100);
 	check_driver(drivers::steelseries::rival_3_wireless);
+	check_driver(drivers::steelseries::aerox_3_wireless);
 	return nullptr;
 }
 
