@@ -51,7 +51,7 @@ int show_available_devices(
 	std::cout << "Drivers available:\n";
 	for (std::size_t i = 0; i < drivers.size(); ++i) {
 		auto const& driver = drivers[i];
-		std::cout << " - [" << i << "] ->" << driver->name() << '\n';
+		std::cout << " - [" << i << "] -> " << driver->name() << '\n';
 
 		auto const& driver_actions = driver->get_actions();
 		for (auto const& [action_id, action] : driver_actions) {
