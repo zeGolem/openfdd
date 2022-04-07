@@ -23,7 +23,7 @@ class rival_3_wireless : public driver
 
 	std::string config_id() const noexcept final
 	{
-		return "steelseries:apex_100";
+		return "steelseries:rival_3_wireless";
 	}
 
 	const std::string name() const noexcept final
