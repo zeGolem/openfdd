@@ -57,6 +57,8 @@ syntax:
 * SteelSeries Rival 3 Wireless
   * Missing RGB configurations
   * Missing button remapping
+* SteelSeries Aerox 3 Wireless
+  * Supports only setting the DPI, the rest is comming soon™!
 
 And others coming! There isn't much stuff yet here, because I don't have
 many Fancy Devices™... I do have a SteelSeries Rival 100 & 110, and just
