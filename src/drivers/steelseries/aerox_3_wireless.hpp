@@ -1,6 +1,8 @@
 #pragma once
 #include "drivers/driver.hpp"
 #include "usb.hpp"
+#include <cstdint>
+#include <vector>
 
 namespace drivers
 {
@@ -11,7 +13,7 @@ class aerox_3_wireless : public driver
 {
   public:
 	aerox_3_wireless(std::shared_ptr<usb_device>     dev,
-	         std::shared_ptr<config_manager> config)
+	                 std::shared_ptr<config_manager> config)
 	    : driver(dev, config)
 	{
 		deserialize_config(config->get_device_config(config_id()));
@@ -35,6 +37,9 @@ class aerox_3_wireless : public driver
 	void run_action(std::string const&              action_id,
 	                std::vector<std::string> const& parameters) final;
 
+	void set_dpi(std::uint8_t               active_profile_id,
+	             std::vector<std::uint16_t> dpi_profiles) const;
+	void save() const;
 
   protected:
 	nlohmann::json serialize_current_config() const noexcept override final;
@@ -43,6 +48,8 @@ class aerox_3_wireless : public driver
 
   private:
 	struct {
+		std::uint8_t               active_dpi_profile = 1;
+		std::vector<std::uint16_t> dpi_profiles = {400, 800, 1200, 2400, 3200};
 	} m_config;
 };
 
