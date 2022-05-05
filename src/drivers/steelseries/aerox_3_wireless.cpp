@@ -271,6 +271,7 @@ void aerox_3_wireless::set_poll_interval(std::uint8_t interval) const
 
 	m_device->control_transfer(0x21, 0x09, 0x0200, 3, data, 1000);
 }
+
 void aerox_3_wireless::save() const
 {
 	// 0x51 is the save command ID
