@@ -71,6 +71,15 @@ const std::unordered_map<std::string, action const> aerox_3_wireless::
   // clang-format on
 	};
 
+	action polling_interval{
+	    .description = "Sets the polling interval",
+	    .parameters  = {{
+	         .type        = parameter::param_uint,
+	         .name        = "interval",
+	         .description = "Interval between polls (1 to 4, 1 is faster)",
+        }},
+	};
+
 	action save{
 	    .description = "Save to onboard memory",
 	    .parameters  = {},
@@ -80,6 +89,7 @@ const std::unordered_map<std::string, action const> aerox_3_wireless::
 	    {       "dpi_profile",        dpi_profile},
 	    {"define_dpi_profile", define_dpi_profile},
 	    {    "lighting_color",     lighting_color},
+	    {  "polling_interval",   polling_interval},
 	    {              "save",               save},
 	};
 }
@@ -158,6 +168,26 @@ void aerox_3_wireless::run_action(std::string const&              action_id,
 		set_lighting_color(zone, {r, g, b});
 		save_config();
 
+	} else if (action_id == "polling_interval") {
+		if (parameters.size() < 1)
+			throw std::runtime_error("Missing arguements for polling_interval");
+
+		std::uint8_t interval;
+
+		try {
+			auto _interval = std::stoi(parameters[0]);
+			if (_interval < 1 || _interval > 4)
+				throw std::runtime_error("Invalid interval");
+
+			interval = _interval;
+		} catch (std::invalid_argument const& e) {
+			throw std::runtime_error("Error parsing interval");
+		}
+
+		m_config.poll_interval = interval;
+		set_poll_interval(interval);
+		save_config();
+
 	} else if (action_id == "save") {
 		save();
 		save_config();
@@ -227,6 +257,20 @@ void aerox_3_wireless::set_lighting_color(
 	m_device->control_transfer(0x21, 0x09, 0x0200, 3, data, 1000);
 }
 
+void aerox_3_wireless::set_poll_interval(std::uint8_t interval) const
+{
+	if (interval < 1 || interval > 4)
+		throw std::runtime_error("Invalid poll interval, must be [1, 4]");
+	--interval; // The interval is from 1 to 4 to be human readable, but the
+	            // driver wants it to be 0 to 3, so this converts it.
+
+	std::vector<std::uint8_t> data = {
+	    0x6b, // Packet ID
+	    interval,
+	};
+
+	m_device->control_transfer(0x21, 0x09, 0x0200, 3, data, 1000);
+}
 void aerox_3_wireless::save() const
 {
 	// 0x51 is the save command ID
@@ -239,6 +283,7 @@ nlohmann::json aerox_3_wireless::serialize_current_config() const noexcept
 	    {"active_dpi_profile", m_config.active_dpi_profile},
 	    {      "dpi_profiles",       m_config.dpi_profiles},
 	    {   "lighting_colors",    m_config.lighting_colors},
+	    {     "poll_interval",      m_config.poll_interval},
 	};
 }
 
@@ -250,6 +295,7 @@ void aerox_3_wireless::deserialize_config(nlohmann::json const& config_on_disk)
 	m_config.lighting_colors =
 	    config_on_disk.value<std::array<std::uint8_t, 3>>("lighting_colors",
 	                                                      {0xff, 0xff, 0xff});
+	m_config.poll_interval = config_on_disk.value("poll_interval", 1);
 }
 
 } // namespace steelseries
