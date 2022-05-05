@@ -1,6 +1,7 @@
 #include "drivers/steelseries/aerox_3_wireless.hpp"
 #include "drivers/driver.hpp"
 #include "steelseries.hpp"
+#include <array>
 #include <cstddef>
 #include <memory.h>
 #include <stdexcept>
@@ -50,6 +51,26 @@ const std::unordered_map<std::string, action const> aerox_3_wireless::
   // clang-format on
 	};
 
+	action lighting_color{
+	    .description = "Set the color of the lights",
+ // Clang doesn't like this for some reason :/
+  // clang-format off
+	    .parameters = {
+			{
+				.type        = parameter::param_uint,
+				.name        = "zone",
+				.description = "The zone to edit (between 1 and 3)",
+			},
+			{
+				 .type = parameter::param_string,
+				 .name = "color",
+				 .description =
+				 "The RGB color to change it to (ex. 'FFFFFF')",
+			},
+		},
+  // clang-format on
+	};
+
 	action save{
 	    .description = "Save to onboard memory",
 	    .parameters  = {},
@@ -58,6 +79,7 @@ const std::unordered_map<std::string, action const> aerox_3_wireless::
 	return {
 	    {       "dpi_profile",        dpi_profile},
 	    {"define_dpi_profile", define_dpi_profile},
+	    {    "lighting_color",     lighting_color},
 	    {              "save",               save},
 	};
 }
@@ -107,6 +129,33 @@ void aerox_3_wireless::run_action(std::string const&              action_id,
 
 		m_config.dpi_profiles[profile - 1] = value;
 		set_dpi(m_config.active_dpi_profile, m_config.dpi_profiles);
+		save_config();
+
+	} else if (action_id == "lighting_color") {
+		if (parameters.size() < 2)
+			throw std::runtime_error("Missig arguements for lighting_color");
+
+		std::uint8_t zone;
+
+		try {
+			auto _zone = std::stoi(parameters[0]);
+			if (_zone < 1 || _zone > 3)
+				throw std::runtime_error("Invalid color zone");
+
+			zone = _zone;
+
+		} catch (std::invalid_argument const& e) {
+			throw std::runtime_error("Error trying to parse string");
+		}
+
+		// TODO Error checking...
+		auto         color = parameters[1];
+		std::uint8_t r     = std::stoi(color.substr(0, 2), nullptr, 16);
+		std::uint8_t g     = std::stoi(color.substr(2, 2), nullptr, 16);
+		std::uint8_t b     = std::stoi(color.substr(4, 2), nullptr, 16);
+
+		m_config.lighting_colors = {r, g, b};
+		set_lighting_color(zone, {r, g, b});
 		save_config();
 
 	} else if (action_id == "save") {
@@ -159,6 +208,25 @@ void aerox_3_wireless::set_dpi(std::uint8_t               active_profile_id,
 	m_device->control_transfer(0x21, 0x09, 0x0200, 3, data, 1000);
 }
 
+void aerox_3_wireless::set_lighting_color(
+    std::uint8_t zone, std::array<std::uint8_t, 3> color) const
+{
+	if (zone < 1 || zone > 3)
+		throw std::runtime_error("Invalid lighting zone, must be in [1, 3]");
+	--zone; // The zone ID is from 1 to 3 to be human readable, but the driver
+	        // wants it to be 0 to 2, so this converts it.
+
+	std::vector<std::uint8_t> data = {
+	    // clang-format off
+	    0x61, 0x01, // Packet ID
+	    zone,
+		color[0], color[1], color[2],
+	    // clang-format on
+	};
+
+	m_device->control_transfer(0x21, 0x09, 0x0200, 3, data, 1000);
+}
+
 void aerox_3_wireless::save() const
 {
 	// 0x51 is the save command ID
@@ -170,6 +238,7 @@ nlohmann::json aerox_3_wireless::serialize_current_config() const noexcept
 	return {
 	    {"active_dpi_profile", m_config.active_dpi_profile},
 	    {      "dpi_profiles",       m_config.dpi_profiles},
+	    {   "lighting_colors",    m_config.lighting_colors},
 	};
 }
 
@@ -178,6 +247,9 @@ void aerox_3_wireless::deserialize_config(nlohmann::json const& config_on_disk)
 	m_config.active_dpi_profile = config_on_disk.value("active_dpi_profile", 1);
 	m_config.dpi_profiles = config_on_disk.value<std::vector<std::uint16_t>>(
 	    "dpi_profiles", {400, 800, 1200, 2400, 3200});
+	m_config.lighting_colors =
+	    config_on_disk.value<std::array<std::uint8_t, 3>>("lighting_colors",
+	                                                      {0xff, 0xff, 0xff});
 }
 
 } // namespace steelseries

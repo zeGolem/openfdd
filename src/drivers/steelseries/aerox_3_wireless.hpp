@@ -1,6 +1,7 @@
 #pragma once
 #include "drivers/driver.hpp"
 #include "usb.hpp"
+#include <array>
 #include <cstdint>
 #include <vector>
 
@@ -39,6 +40,8 @@ class aerox_3_wireless : public driver
 
 	void set_dpi(std::uint8_t               active_profile_id,
 	             std::vector<std::uint16_t> dpi_profiles) const;
+	void set_lighting_color(std::uint8_t                zone,
+	                        std::array<std::uint8_t, 3> color) const;
 	void save() const;
 
   protected:
@@ -48,8 +51,9 @@ class aerox_3_wireless : public driver
 
   private:
 	struct {
-		std::uint8_t               active_dpi_profile = 1;
-		std::vector<std::uint16_t> dpi_profiles = {400, 800, 1200, 2400, 3200};
+		std::uint8_t                active_dpi_profile = 1;
+		std::vector<std::uint16_t>  dpi_profiles = {400, 800, 1200, 2400, 3200};
+		std::array<std::uint8_t, 3> lighting_colors = {0xff, 0xff, 0xff};
 	} m_config;
 };
 
