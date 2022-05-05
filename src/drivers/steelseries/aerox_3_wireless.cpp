@@ -85,7 +85,7 @@ void aerox_3_wireless::run_action(std::string const&              action_id,
 		save_config();
 
 	} else if (action_id == "define_dpi_profile") {
-		if (parameters.size() < 1)
+		if (parameters.size() < 2)
 			throw std::runtime_error(
 			    "Missig arguements for define_dpi_profile");
 
