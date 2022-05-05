@@ -80,6 +80,15 @@ const std::unordered_map<std::string, action const> aerox_3_wireless::
         }},
 	};
 
+	action sleep_timeout{
+	    .description = "Sets the sleep timeout, in seconds",
+	    .parameters  = {{
+	         .type        = parameter::param_uint,
+	         .name        = "timeout",
+	         .description = "The time in second before the mouse goes to sleep",
+        }},
+	};
+
 	action save{
 	    .description = "Save to onboard memory",
 	    .parameters  = {},
@@ -90,6 +99,7 @@ const std::unordered_map<std::string, action const> aerox_3_wireless::
 	    {"define_dpi_profile", define_dpi_profile},
 	    {    "lighting_color",     lighting_color},
 	    {  "polling_interval",   polling_interval},
+	    {     "sleep_timeout",      sleep_timeout},
 	    {              "save",               save},
 	};
 }
@@ -188,6 +198,26 @@ void aerox_3_wireless::run_action(std::string const&              action_id,
 		set_poll_interval(interval);
 		save_config();
 
+	} else if (action_id == "sleep_timeout") {
+		if (parameters.size() < 1)
+			throw std::runtime_error("Missing arguements for sleep_timeout");
+
+		std::uint32_t timeout;
+
+		try {
+			auto _timeout = std::stoi(parameters[0]);
+			if (_timeout < 0 || _timeout > 1'200'000)
+				throw std::runtime_error("Invalid timeout");
+
+			timeout = _timeout;
+		} catch (std::invalid_argument const& e) {
+			throw std::runtime_error("Error parsing timeout");
+		}
+
+		m_config.sleep_timeout = timeout;
+		set_sleep_timeout(timeout);
+		save_config();
+
 	} else if (action_id == "save") {
 		save();
 		save_config();
@@ -272,6 +302,24 @@ void aerox_3_wireless::set_poll_interval(std::uint8_t interval) const
 	m_device->control_transfer(0x21, 0x09, 0x0200, 3, data, 1000);
 }
 
+void aerox_3_wireless::set_sleep_timeout(std::uint32_t timeout_in_seconds) const
+{
+	std::vector<std::uint8_t> data = {
+	    0x69, // Nice packet ID
+	    // Timeout value (in reverse byte order to match what the driver
+	    // expects).
+	    // This uses some bit manipulation magic that I don't fully understand,
+	    // but it works, and the code looks nice, so I'm fine with it
+	    static_cast<std::uint8_t>((timeout_in_seconds & 0x000000ff) >> 0),
+	    static_cast<std::uint8_t>((timeout_in_seconds & 0x0000ff00) >> 8),
+	    static_cast<std::uint8_t>((timeout_in_seconds & 0x00ff0000) >> 16),
+	    static_cast<std::uint8_t>((timeout_in_seconds & 0xff000000) >> 24),
+
+	};
+
+	m_device->control_transfer(0x21, 0x09, 0x0200, 3, data, 1000);
+}
+
 void aerox_3_wireless::save() const
 {
 	// 0x51 is the save command ID
@@ -285,6 +333,7 @@ nlohmann::json aerox_3_wireless::serialize_current_config() const noexcept
 	    {      "dpi_profiles",       m_config.dpi_profiles},
 	    {   "lighting_colors",    m_config.lighting_colors},
 	    {     "poll_interval",      m_config.poll_interval},
+	    {     "sleep_timeout",      m_config.sleep_timeout},
 	};
 }
 
@@ -297,6 +346,7 @@ void aerox_3_wireless::deserialize_config(nlohmann::json const& config_on_disk)
 	    config_on_disk.value<std::array<std::uint8_t, 3>>("lighting_colors",
 	                                                      {0xff, 0xff, 0xff});
 	m_config.poll_interval = config_on_disk.value("poll_interval", 1);
+	m_config.sleep_timeout = config_on_disk.value("sleep_timeout", 0);
 }
 
 } // namespace steelseries
