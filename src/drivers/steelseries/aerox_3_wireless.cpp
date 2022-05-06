@@ -201,8 +201,7 @@ void aerox_3_wireless::create_actions() noexcept
 void aerox_3_wireless::set_dpi(std::uint8_t               active_profile_id,
                                std::vector<std::uint16_t> dpi_profiles) const
 {
-	if (active_profile_id < 1 || active_profile_id > 5)
-		throw std::runtime_error("Invalid profile id, must be in [1,5]");
+	utils::ensure_range(active_profile_id, 1, 5, "Profile ID");
 	--active_profile_id; // The profile ID is from 1 to 5 to be human
 	                     // readable, but the driver wants it to be 0 to 4,
 	                     // so this converts it.
@@ -243,8 +242,7 @@ void aerox_3_wireless::set_dpi(std::uint8_t               active_profile_id,
 void aerox_3_wireless::set_lighting_color(
     std::uint8_t zone, std::array<std::uint8_t, 3> color) const
 {
-	if (zone < 1 || zone > 3)
-		throw std::runtime_error("Invalid lighting zone, must be in [1, 3]");
+	utils::ensure_range(zone, 1, 3, "Zone");
 	--zone; // The zone ID is from 1 to 3 to be human readable, but the
 	        // driver wants it to be 0 to 2, so this converts it.
 
@@ -261,8 +259,7 @@ void aerox_3_wireless::set_lighting_color(
 
 void aerox_3_wireless::set_poll_interval(std::uint8_t interval) const
 {
-	if (interval < 1 || interval > 4)
-		throw std::runtime_error("Invalid poll interval, must be [1, 4]");
+	utils::ensure_range(interval, 1, 4, "Interval");
 	--interval; // The interval is from 1 to 4 to be human readable, but the
 	            // driver wants it to be 0 to 3, so this converts it.
 
