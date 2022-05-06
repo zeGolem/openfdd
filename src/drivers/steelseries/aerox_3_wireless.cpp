@@ -232,7 +232,7 @@ void aerox_3_wireless::create_actions() noexcept
 
 	CREATE_ACTION_HANDLER(save)
 	{
-		CHECK_PARAMS_SIZE(0, save);
+		(void)parameters;
 		this->save();
 		save_config();
 	};
