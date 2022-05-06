@@ -20,6 +20,15 @@ bool rival_3_wireless::is_compatible(std::shared_ptr<usb_device> device)
 
 void rival_3_wireless::create_actions() noexcept
 {
+	// TODO: Use those macros to create the actions and register them, like in
+	// steelseries::aerox_3_wireless
+#define CREATE_ACTION_HANDLER(action_name)                                     \
+	auto action_name##_handler = [this](                                       \
+	    std::vector<std::string> const& parameters)
+
+#define REGISTER_ACTION(action_name)                                           \
+	register_action(#action_name, action_name, action_name##_handler)
+
 	action dpi_presset{
 	    .description = "Set the active DPI presset",
 	    .parameters  = {{
@@ -232,6 +241,9 @@ void rival_3_wireless::create_actions() noexcept
 	};
 
 	register_action("save", save, save_handler);
+
+#undef CREATE_ACTION_HANDLER
+#undef REGISTER_ACTION
 }
 
 void rival_3_wireless::set_dpi(std::uint8_t               active_profile_id,

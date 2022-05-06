@@ -19,6 +19,15 @@ bool apex_100::is_compatible(std::shared_ptr<usb_device> dev)
 
 void apex_100::create_actions() noexcept
 {
+	// TODO: Use those macros to create the actions and register them, like in
+	// steelseries::aerox_3_wireless
+#define CREATE_ACTION_HANDLER(action_name)                                     \
+	auto action_name##_handler = [this](                                       \
+	    std::vector<std::string> const& parameters)
+
+#define REGISTER_ACTION(action_name)                                           \
+	register_action(#action_name, action_name, action_name##_handler)
+
 	action backlight_luminosity{
 	    .description = "Backlight luminosity",
 	    .parameters  = {{
@@ -137,6 +146,9 @@ void apex_100::create_actions() noexcept
 	};
 
 	register_action("save", save, save_handler);
+
+#undef CREATE_ACTION_HANDLER
+#undef REGISTER_ACTION
 }
 
 void apex_100::set_backlight_luminosity(std::uint8_t luminosity) const

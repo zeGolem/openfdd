@@ -23,6 +23,13 @@ bool aerox_3_wireless::is_compatible(std::shared_ptr<usb_device> dev)
 
 void aerox_3_wireless::create_actions() noexcept
 {
+#define CREATE_ACTION_HANDLER(action_name)                                     \
+	auto action_name##_handler = [this](                                       \
+	    std::vector<std::string> const& parameters)
+
+#define REGISTER_ACTION(action_name)                                           \
+	register_action(#action_name, action_name, action_name##_handler)
+
 	action dpi_profile{
 	    .description = "Set the current DPI profile",
 	    .parameters  = {{
@@ -32,28 +39,28 @@ void aerox_3_wireless::create_actions() noexcept
         }},
 	};
 
-	auto dpi_profile_handler =
-	    [this](std::vector<std::string> const& parameters) {
-		    if (parameters.size() < 1)
-			    throw std::runtime_error("Missig arguements for dpi_profile");
+	CREATE_ACTION_HANDLER(dpi_profile)
+	{
+		if (parameters.size() < 1)
+			throw std::runtime_error("Missig arguements for dpi_profile");
 
-		    std::uint8_t profile;
-		    try {
-			    auto _profile = std::stoi(parameters[0]);
-			    if (_profile < 1 || _profile > 5)
-				    throw std::runtime_error("Invalid DPI profile");
-			    profile = _profile;
-		    } catch (std::invalid_argument const& e) {
-			    throw std::runtime_error("DPI profile value isn't a number (" +
-			                             parameters[0] + ")");
-		    }
+		std::uint8_t profile;
+		try {
+			auto _profile = std::stoi(parameters[0]);
+			if (_profile < 1 || _profile > 5)
+				throw std::runtime_error("Invalid DPI profile");
+			profile = _profile;
+		} catch (std::invalid_argument const& e) {
+			throw std::runtime_error("DPI profile value isn't a number (" +
+			                         parameters[0] + ")");
+		}
 
-		    m_config.active_dpi_profile = profile;
-		    set_dpi(profile, m_config.dpi_profiles);
-		    save_config();
-	    };
+		m_config.active_dpi_profile = profile;
+		set_dpi(profile, m_config.dpi_profiles);
+		save_config();
+	};
 
-	register_action("dpi_profile", dpi_profile, dpi_profile_handler);
+	REGISTER_ACTION(dpi_profile);
 
 	action define_dpi_profile{
 	    .description = "Set the value of a DPI profile",
@@ -74,35 +81,34 @@ void aerox_3_wireless::create_actions() noexcept
   // clang-format on
 	};
 
-	auto define_dpi_profile_handler =
-	    [this](std::vector<std::string> const& parameters) {
-		    if (parameters.size() < 2)
-			    throw std::runtime_error(
-			        "Missig arguements for define_dpi_profile");
+	CREATE_ACTION_HANDLER(define_dpi_profile)
+	{
+		if (parameters.size() < 2)
+			throw std::runtime_error(
+			    "Missig arguements for define_dpi_profile");
 
-		    std::uint8_t  profile;
-		    std::uint16_t value;
-		    try {
-			    auto _profile = std::stoi(parameters[0]);
-			    if (_profile < 1 || _profile > 5)
-				    throw std::runtime_error("Invalid DPI profile");
-			    profile = _profile;
+		std::uint8_t  profile;
+		std::uint16_t value;
+		try {
+			auto _profile = std::stoi(parameters[0]);
+			if (_profile < 1 || _profile > 5)
+				throw std::runtime_error("Invalid DPI profile");
+			profile = _profile;
 
-			    auto _value = std::stoi(parameters[1]);
-			    if (_value < 100 || _value > 18000)
-				    throw std::runtime_error("Invalid DPI value");
-			    value = _value;
-		    } catch (std::invalid_argument const& e) {
-			    throw std::runtime_error("Error trying to parse string");
-		    }
+			auto _value = std::stoi(parameters[1]);
+			if (_value < 100 || _value > 18000)
+				throw std::runtime_error("Invalid DPI value");
+			value = _value;
+		} catch (std::invalid_argument const& e) {
+			throw std::runtime_error("Error trying to parse string");
+		}
 
-		    m_config.dpi_profiles[profile - 1] = value;
-		    set_dpi(m_config.active_dpi_profile, m_config.dpi_profiles);
-		    save_config();
-	    };
+		m_config.dpi_profiles[profile - 1] = value;
+		set_dpi(m_config.active_dpi_profile, m_config.dpi_profiles);
+		save_config();
+	};
 
-	register_action(
-	    "define_dpi_profile", define_dpi_profile, define_dpi_profile_handler);
+	REGISTER_ACTION(define_dpi_profile);
 
 	action lighting_color{
 	    .description = "Set the color of the lights",
@@ -124,37 +130,36 @@ void aerox_3_wireless::create_actions() noexcept
   // clang-format on
 	};
 
-	auto lighting_color_handler =
-	    [this](std::vector<std::string> const& parameters) {
-		    if (parameters.size() < 2)
-			    throw std::runtime_error(
-			        "Missig arguements for lighting_color");
+	CREATE_ACTION_HANDLER(lighting_color)
+	{
+		if (parameters.size() < 2)
+			throw std::runtime_error("Missig arguements for lighting_color");
 
-		    std::uint8_t zone;
+		std::uint8_t zone;
 
-		    try {
-			    auto _zone = std::stoi(parameters[0]);
-			    if (_zone < 1 || _zone > 3)
-				    throw std::runtime_error("Invalid color zone");
+		try {
+			auto _zone = std::stoi(parameters[0]);
+			if (_zone < 1 || _zone > 3)
+				throw std::runtime_error("Invalid color zone");
 
-			    zone = _zone;
+			zone = _zone;
 
-		    } catch (std::invalid_argument const& e) {
-			    throw std::runtime_error("Error trying to parse string");
-		    }
+		} catch (std::invalid_argument const& e) {
+			throw std::runtime_error("Error trying to parse string");
+		}
 
-		    // TODO Error checking...
-		    auto         color = parameters[1];
-		    std::uint8_t r     = std::stoi(color.substr(0, 2), nullptr, 16);
-		    std::uint8_t g     = std::stoi(color.substr(2, 2), nullptr, 16);
-		    std::uint8_t b     = std::stoi(color.substr(4, 2), nullptr, 16);
+		// TODO Error checking...
+		auto         color = parameters[1];
+		std::uint8_t r     = std::stoi(color.substr(0, 2), nullptr, 16);
+		std::uint8_t g     = std::stoi(color.substr(2, 2), nullptr, 16);
+		std::uint8_t b     = std::stoi(color.substr(4, 2), nullptr, 16);
 
-		    m_config.lighting_colors = {r, g, b};
-		    set_lighting_color(zone, {r, g, b});
-		    save_config();
-	    };
+		m_config.lighting_colors = {r, g, b};
+		set_lighting_color(zone, {r, g, b});
+		save_config();
+	};
 
-	register_action("lighting_color", lighting_color, lighting_color_handler);
+	REGISTER_ACTION(lighting_color);
 
 	action polling_interval{
 	    .description = "Sets the polling interval",
@@ -165,31 +170,29 @@ void aerox_3_wireless::create_actions() noexcept
         }},
 	};
 
-	auto polling_interval_handler =
-	    [this](std::vector<std::string> const& parameters) {
-		    if (parameters.size() < 1)
-			    throw std::runtime_error(
-			        "Missing arguements for polling_interval");
+	CREATE_ACTION_HANDLER(polling_interval)
+	{
+		if (parameters.size() < 1)
+			throw std::runtime_error("Missing arguements for polling_interval");
 
-		    std::uint8_t interval;
+		std::uint8_t interval;
 
-		    try {
-			    auto _interval = std::stoi(parameters[0]);
-			    if (_interval < 1 || _interval > 4)
-				    throw std::runtime_error("Invalid interval");
+		try {
+			auto _interval = std::stoi(parameters[0]);
+			if (_interval < 1 || _interval > 4)
+				throw std::runtime_error("Invalid interval");
 
-			    interval = _interval;
-		    } catch (std::invalid_argument const& e) {
-			    throw std::runtime_error("Error parsing interval");
-		    }
+			interval = _interval;
+		} catch (std::invalid_argument const& e) {
+			throw std::runtime_error("Error parsing interval");
+		}
 
-		    m_config.poll_interval = interval;
-		    set_poll_interval(interval);
-		    save_config();
-	    };
+		m_config.poll_interval = interval;
+		set_poll_interval(interval);
+		save_config();
+	};
 
-	register_action(
-	    "polling_interval", polling_interval, polling_interval_handler);
+	REGISTER_ACTION(polling_interval);
 
 	action sleep_timeout{
 	    .description = "Sets the sleep timeout, in seconds",
@@ -200,42 +203,46 @@ void aerox_3_wireless::create_actions() noexcept
         }},
 	};
 
-	auto sleep_timeout_handler =
-	    [this](std::vector<std::string> const& parameters) {
-		    if (parameters.size() < 1)
-			    throw std::runtime_error(
-			        "Missing arguements for sleep_timeout");
+	CREATE_ACTION_HANDLER(sleep_timeout)
+	{
+		if (parameters.size() < 1)
+			throw std::runtime_error("Missing arguements for sleep_timeout");
 
-		    std::uint32_t timeout;
+		std::uint32_t timeout;
 
-		    try {
-			    auto _timeout = std::stoi(parameters[0]);
-			    if (_timeout < 0 || _timeout > 1'200'000)
-				    throw std::runtime_error("Invalid timeout");
+		try {
+			auto _timeout = std::stoi(parameters[0]);
+			if (_timeout < 0 || _timeout > 1'200'000)
+				throw std::runtime_error("Invalid timeout");
 
-			    timeout = _timeout;
-		    } catch (std::invalid_argument const& e) {
-			    throw std::runtime_error("Error parsing timeout");
-		    }
+			timeout = _timeout;
+		} catch (std::invalid_argument const& e) {
+			throw std::runtime_error("Error parsing timeout");
+		}
 
-		    m_config.sleep_timeout = timeout;
-		    set_sleep_timeout(timeout);
-		    save_config();
-	    };
+		m_config.sleep_timeout = timeout;
+		set_sleep_timeout(timeout);
+		save_config();
+	};
 
-	register_action("sleep_timeout", sleep_timeout, sleep_timeout_handler);
+	REGISTER_ACTION(sleep_timeout);
 
 	action save{
 	    .description = "Save to onboard memory",
 	    .parameters  = {},
 	};
 
-	auto save_handler = [this](std::vector<std::string> const&) {
+	CREATE_ACTION_HANDLER(save)
+	{
+		(void)parameters;
 		this->save();
 		save_config();
 	};
 
-	register_action("save", save, save_handler);
+	REGISTER_ACTION(save);
+
+#undef CREATE_ACTION_HANDLER
+#undef REGISTER_ACTION
 }
 
 void aerox_3_wireless::set_dpi(std::uint8_t               active_profile_id,
