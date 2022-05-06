@@ -4,6 +4,7 @@
 #include "config.hpp"
 #include "usb.hpp"
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <string>
@@ -25,6 +26,8 @@ struct parameter {
 struct action {
 	std::string            description;
 	std::vector<parameter> parameters;
+
+	typedef std::function<void(std::vector<std::string> const&)> handler;
 };
 
 class driver
@@ -40,11 +43,14 @@ class driver
 
 	virtual const std::string name() const noexcept = 0;
 
-	virtual const std::unordered_map<std::string, action const> get_actions()
-	    const noexcept = 0;
+	const std::unordered_map<std::string, action const>& get_actions()
+	    const noexcept
+	{
+		return m_actions;
+	}
 
-	virtual void run_action(std::string const&              option_id,
-	                        std::vector<std::string> const& parameters) = 0;
+	void run_action(std::string const&              action_id,
+	                std::vector<std::string> const& parameters);
 
   protected:
 	virtual nlohmann::json serialize_current_config() const noexcept      = 0;
@@ -60,8 +66,17 @@ class driver
 		                                serialize_current_config());
 	}
 
+	void register_action(std::string const& id,
+	                     action const&      the_action,
+	                     action::handler const&);
+
+	virtual void create_actions() noexcept = 0;
+
 	std::shared_ptr<usb_device>     m_device;
 	std::shared_ptr<config_manager> m_config_manager;
+
+	std::unordered_map<std::string, action const>    m_actions;
+	std::unordered_map<std::string, action::handler> m_action_handlers;
 };
 
 } // namespace drivers

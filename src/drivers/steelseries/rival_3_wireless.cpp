@@ -2,6 +2,8 @@
 #include "steelseries.hpp"
 #include "usb.hpp"
 #include <memory.h>
+#include <string>
+#include <vector>
 
 namespace drivers
 {
@@ -16,18 +18,8 @@ bool rival_3_wireless::is_compatible(std::shared_ptr<usb_device> device)
 	return false;
 }
 
-const std::unordered_map<std::string, action const> rival_3_wireless::
-    get_actions() const noexcept
+void rival_3_wireless::create_actions() noexcept
 {
-	action static_color{
-	    .description = "Static color (doesn't work)",
-	    .parameters  = {{
-	         .type        = parameter::param_string,
-	         .name        = "color",
-	         .description = "Mousewheel color (format: 'RRGGBB')",
-        }},
-	};
-
 	action dpi_presset{
 	    .description = "Set the active DPI presset",
 	    .parameters  = {{
@@ -37,12 +29,32 @@ const std::unordered_map<std::string, action const> rival_3_wireless::
         }},
 	};
 
-	// clang-format off
-	// TODO: Clang format seems to do weird stuff with this :/
+	auto dpi_presset_handler =
+	    [this](std::vector<std::string> const& parameters) {
+		    if (parameters.size() < 1)
+			    throw std::runtime_error("Missig arguements for dpi_presset");
+
+		    std::uint8_t profile;
+		    try {
+			    auto val = std::stoi(parameters[0]);
+			    if (val < 1 || val > 5)
+				    throw std::runtime_error("Invalid profile");
+			    profile = val;
+		    } catch (std::invalid_argument const& e) {
+			    throw std::runtime_error("Couldn't parse number.");
+		    }
+
+		    m_config.active_profile = profile;
+		    set_dpi(profile, m_config.dpi_values);
+		    save_config();
+	    };
+
+	register_action("dpi_presset", dpi_presset, dpi_presset_handler);
+
 	action dpi_presset_config{
 	    .description = "Configure a DPI presset",
 	    .parameters =
-	        {
+	        {// clang-format off
 				{
 					.type        = parameter::param_uint,
 					.name        = "presset",
@@ -54,8 +66,39 @@ const std::unordered_map<std::string, action const> rival_3_wireless::
 					.description = "DPI value (100-18000)",
 				}
 			},
+	    // clang-format on
 	};
-	// clang-format on
+
+	auto dpi_presset_config_handler =
+	    [this](std::vector<std::string> const& parameters) {
+		    if (parameters.size() < 2)
+			    throw std::runtime_error(
+			        "Missig arguements for dpi_presset_config");
+
+		    std::uint8_t  profile;
+		    std::uint16_t new_value;
+		    try {
+			    auto _profile = std::stoi(parameters[0]);
+			    if (_profile < 1 || _profile > 5)
+				    throw std::runtime_error("Invalid profile");
+			    profile = _profile;
+
+			    auto _new_value = std::stoi(parameters[1]);
+			    if (_new_value < 100 || _new_value > 18000)
+				    throw std::runtime_error("Invalid DPI value");
+			    new_value = _new_value;
+
+		    } catch (std::invalid_argument const& e) {
+			    throw std::runtime_error("Couldn't parse number.");
+		    }
+
+		    m_config.dpi_values[profile - 1] = new_value;
+		    set_dpi(m_config.active_profile, m_config.dpi_values);
+		    save_config();
+	    };
+
+	register_action(
+	    "dpi_presset_config", dpi_presset_config, dpi_presset_config_handler);
 
 	action poll_interval{
 	    .description = "Set the poll interval",
@@ -65,6 +108,29 @@ const std::unordered_map<std::string, action const> rival_3_wireless::
 	         .description = "Interval between polls, in ms (1-4)",
         }},
 	};
+
+	auto poll_interval_handler =
+	    [this](std::vector<std::string> const& parameters) {
+		    if (parameters.size() < 1)
+			    throw std::runtime_error(
+			        "Missig arguements for set_poll_interval");
+
+		    std::uint8_t interval;
+		    try {
+			    auto _interval = std::stoi(parameters[0]);
+			    if (_interval > 4 || _interval < 1)
+				    throw std::runtime_error(
+				        "Invalid poll interval, value must be between 1 and 4");
+			    interval = _interval;
+		    } catch (std::invalid_argument const& e) {
+			    throw std::runtime_error("Couldn't parse number.");
+		    }
+
+		    // TODO: Save to m_config
+		    set_poll_interval(interval);
+	    };
+
+	register_action("poll_interval", poll_interval, poll_interval_handler);
 
 	action ultra_power_saving{
 	    .description = "Ultra power saving mode",
@@ -76,6 +142,23 @@ const std::unordered_map<std::string, action const> rival_3_wireless::
         }},
 	};
 
+	auto ultra_power_saving_handler =
+	    [this](std::vector<std::string> const& parameters) {
+		    if (parameters.size() < 1)
+			    throw std::runtime_error(
+			        "Missig arguements for ultra_power_saving");
+
+		    bool is_active = parameters[0] == "true";
+
+		    m_config.ultra_power_saving_mode = is_active;
+		    set_powersaving_options(
+		        is_active, m_config.smart_lighting_mode, m_config.sleep_time);
+		    save_config();
+	    };
+
+	register_action(
+	    "ultra_power_saving", ultra_power_saving, ultra_power_saving_handler);
+
 	action smart_lighting{
 	    .description = "Smart lighting mode",
 	    .parameters  = {{
@@ -86,6 +169,23 @@ const std::unordered_map<std::string, action const> rival_3_wireless::
         }},
 	};
 
+	auto smart_lighting_handler =
+	    [this](std::vector<std::string> const& parameters) {
+		    if (parameters.size() < 1)
+			    throw std::runtime_error(
+			        "Missig arguements for smart_lighting");
+
+		    bool is_active = parameters[0] == "true";
+
+		    m_config.smart_lighting_mode = is_active;
+		    set_powersaving_options(m_config.ultra_power_saving_mode,
+		                            is_active,
+		                            m_config.sleep_time);
+		    save_config();
+	    };
+
+	register_action("smart_lighting", smart_lighting, smart_lighting_handler);
+
 	action sleep_time{
 	    .description = "Sleep time",
 	    .parameters  = {{
@@ -95,155 +195,43 @@ const std::unordered_map<std::string, action const> rival_3_wireless::
         }},
 	};
 
+	auto sleep_time_handler =
+	    [this](std::vector<std::string> const& parameters) {
+		    if (parameters.size() < 1)
+			    throw std::runtime_error("Missig arguements for sleep_time");
+
+		    std::uint16_t sleep_time;
+		    try {
+			    auto _sleep_time = std::stoi(parameters[0]);
+			    // TODO: Is there a max. value? The GUI goes up to 20 minutes...
+			    if (_sleep_time < 0)
+				    throw std::runtime_error("Invalid value for sleep_time");
+
+			    sleep_time = _sleep_time;
+		    } catch (std::runtime_error const& e) {
+			    throw std::runtime_error("Couldn't parse number");
+		    }
+
+		    m_config.sleep_time = sleep_time;
+		    set_powersaving_options(m_config.ultra_power_saving_mode,
+		                            m_config.smart_lighting_mode,
+		                            sleep_time);
+		    save_config();
+	    };
+
+	register_action("sleep_time", sleep_time, sleep_time_handler);
+
 	action save{
 	    .description = "Save to onboard memory",
 	    .parameters  = {},
 	};
 
-	return {
-	    {      "static_color",       static_color},
-	    {"dpi_presset_config", dpi_presset_config},
-	    {       "dpi_presset",        dpi_presset},
-	    { "set_poll_interval",      poll_interval},
-	    {"ultra_power_saving", ultra_power_saving},
-	    {    "smart_lighting",     smart_lighting},
-	    {        "sleep_time",         sleep_time},
-	    {              "save",               save},
+	auto save_handler = [this](std::vector<std::string> const&) {
+		this->save();
+		save_config();
 	};
-}
 
-void rival_3_wireless::run_action(std::string const&              action_id,
-                                  std::vector<std::string> const& parameters)
-{
-	if (action_id == "static_color") {
-		throw std::runtime_error("Not implemented.");
-		if (parameters.size() < 1)
-			throw std::runtime_error("Missig arguements for static_color");
-
-		auto const& hex_string = parameters[0];
-
-		if (hex_string.length() != 6)
-			throw std::runtime_error(
-			    "Color must be in the following format: RRGGBB");
-
-		// Parse the RGB values
-		std::uint8_t r = std::stoi(hex_string.substr(0, 2), nullptr, 16);
-		std::uint8_t g = std::stoi(hex_string.substr(2, 2), nullptr, 16);
-		std::uint8_t b = std::stoi(hex_string.substr(4, 2), nullptr, 16);
-
-		set_static_color(r, g, b);
-
-	} else if (action_id == "dpi_presset") {
-		if (parameters.size() < 1)
-			throw std::runtime_error("Missig arguements for dpi_presset");
-
-		std::uint8_t profile;
-		try {
-			auto val = std::stoi(parameters[0]);
-			if (val < 1 || val > 5) throw std::runtime_error("Invalid profile");
-			profile = val;
-		} catch (std::invalid_argument const& e) {
-			throw std::runtime_error("Couldn't parse number.");
-		}
-
-		m_config.active_profile = profile;
-		set_dpi(profile, m_config.dpi_values);
-		save_config();
-
-	} else if (action_id == "dpi_presset_config") {
-		if (parameters.size() < 2)
-			throw std::runtime_error(
-			    "Missig arguements for dpi_presset_config");
-
-		std::uint8_t  profile;
-		std::uint16_t new_value;
-		try {
-			auto _profile = std::stoi(parameters[0]);
-			if (_profile < 1 || _profile > 5)
-				throw std::runtime_error("Invalid profile");
-			profile = _profile;
-
-			auto _new_value = std::stoi(parameters[1]);
-			if (_new_value < 100 || _new_value > 18000)
-				throw std::runtime_error("Invalid DPI value");
-			new_value = _new_value;
-
-		} catch (std::invalid_argument const& e) {
-			throw std::runtime_error("Couldn't parse number.");
-		}
-
-		m_config.dpi_values[profile - 1] = new_value;
-		set_dpi(m_config.active_profile, m_config.dpi_values);
-		save_config();
-
-	} else if (action_id == "set_poll_interval") {
-		if (parameters.size() < 1)
-			throw std::runtime_error("Missig arguements for set_poll_interval");
-
-		std::uint8_t interval;
-		try {
-			auto _interval = std::stoi(parameters[0]);
-			if (_interval > 4 || _interval < 1)
-				throw std::runtime_error(
-				    "Invalid poll interval, value must be between 1 and 4");
-			interval = _interval;
-		} catch (std::invalid_argument const& e) {
-			throw std::runtime_error("Couldn't parse number.");
-		}
-
-		// TODO: Save to m_config
-		set_poll_interval(interval);
-
-	} else if (action_id == "ultra_power_saving") {
-		if (parameters.size() < 1)
-			throw std::runtime_error(
-			    "Missig arguements for ultra_power_saving");
-
-		bool is_active = parameters[0] == "true";
-
-		m_config.ultra_power_saving_mode = is_active;
-		set_powersaving_options(
-		    is_active, m_config.smart_lighting_mode, m_config.sleep_time);
-		save_config();
-
-	} else if (action_id == "smart_lighting") {
-		if (parameters.size() < 1)
-			throw std::runtime_error("Missig arguements for smart_lighting");
-
-		bool is_active = parameters[0] == "true";
-
-		m_config.smart_lighting_mode = is_active;
-		set_powersaving_options(
-		    m_config.ultra_power_saving_mode, is_active, m_config.sleep_time);
-		save_config();
-
-	} else if (action_id == "sleep_time") {
-		if (parameters.size() < 1)
-			throw std::runtime_error("Missig arguements for sleep_time");
-
-		std::uint16_t sleep_time;
-		try {
-			auto _sleep_time = std::stoi(parameters[0]);
-			// TODO: Is there a max. value? The GUI goes up to 20 minutes...
-			if (_sleep_time < 0)
-				throw std::runtime_error("Invalid value for sleep_time");
-
-			sleep_time = _sleep_time;
-		} catch (std::runtime_error const& e) {
-			throw std::runtime_error("Couldn't parse number");
-		}
-
-		m_config.sleep_time = sleep_time;
-		set_powersaving_options(m_config.ultra_power_saving_mode,
-		                        m_config.smart_lighting_mode,
-		                        sleep_time);
-		save_config();
-
-	} else if (action_id == "save") {
-		save();
-
-	} else
-		throw std::runtime_error("Unknown action: " + action_id);
+	register_action("save", save, save_handler);
 }
 
 void rival_3_wireless::set_dpi(std::uint8_t               active_profile_id,

@@ -36,12 +36,6 @@ class apex_100 : public driver
 		return "SteelSeries Apex 100";
 	};
 
-	const std::unordered_map<std::string, action const> get_actions()
-	    const noexcept final;
-
-	void run_action(std::string const&              action_id,
-	                std::vector<std::string> const& parameters) final;
-
 	void set_backlight_luminosity(std::uint8_t) const;
 	void set_backlight_pattern(backlight_pattern) const;
 	void set_polling_interval(std::uint8_t) const;
@@ -51,6 +45,8 @@ class apex_100 : public driver
 	nlohmann::json serialize_current_config() const noexcept override final;
 	void           deserialize_config(
 	              nlohmann::json const& config_on_disk) override final;
+
+	void create_actions() noexcept override final;
 
   private:
 	struct {

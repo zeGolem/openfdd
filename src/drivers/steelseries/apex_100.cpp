@@ -1,6 +1,8 @@
 #include "apex_100.hpp"
 #include "steelseries.hpp"
 #include <memory.h>
+#include <string>
+#include <vector>
 
 namespace drivers
 {
@@ -15,10 +17,9 @@ bool apex_100::is_compatible(std::shared_ptr<usb_device> dev)
 	return false;
 }
 
-const std::unordered_map<std::string, action const> apex_100::get_actions()
-    const noexcept
+void apex_100::create_actions() noexcept
 {
-	auto luminosity = action{
+	action backlight_luminosity{
 	    .description = "Backlight luminosity",
 	    .parameters  = {{
 	         .type        = parameter::param_uint,
@@ -27,7 +28,33 @@ const std::unordered_map<std::string, action const> apex_100::get_actions()
         }},
 	};
 
-	auto backlight_patterns = action{
+	auto backlight_luminosity_handler =
+	    [this](std::vector<std::string> const& parameters) {
+		    if (parameters.size() < 1)
+			    throw std::runtime_error(
+			        "Missig arguements for backlight_luminosity");
+
+		    std::uint8_t backlight_value;
+		    try {
+			    auto val = std::stoi(parameters[0]);
+			    if (val < 0 || val > 100)
+				    throw std::runtime_error("Invalid luminosity value");
+			    backlight_value = val;
+		    } catch (std::invalid_argument const& e) {
+			    throw std::runtime_error("Luminosity value isn't a number (" +
+			                             parameters[0] + ")");
+		    }
+
+		    m_config.backlight_luminosity = backlight_value;
+		    set_backlight_luminosity(backlight_value);
+		    save_config();
+	    };
+
+	register_action("backlight_luminosity",
+	                backlight_luminosity,
+	                backlight_luminosity_handler);
+
+	action backlight_patterns{
 	    .description = "Backlight patterns",
 	    .parameters  = {{
 	         .type = parameter::param_string,
@@ -37,7 +64,35 @@ const std::unordered_map<std::string, action const> apex_100::get_actions()
         }},
 	};
 
-	auto polling = action{
+	auto backlight_patterns_handler =
+	    [this](std::vector<std::string> const& parameters) {
+		    if (parameters.size() < 1)
+			    throw std::runtime_error(
+			        "Missig arguements for backlight_patterns");
+
+		    auto pattern_string = parameters[0];
+
+		    backlight_pattern pattern;
+		    if (pattern_string == "static")
+			    pattern = backlight_pattern::static_;
+		    else if (pattern_string == "slow")
+			    pattern = backlight_pattern::slow;
+		    else if (pattern_string == "medium")
+			    pattern = backlight_pattern::medium;
+		    else if (pattern_string == "fast")
+			    pattern = backlight_pattern::fast;
+		    else
+			    throw std::runtime_error("Invalid backlight pattern");
+
+		    m_config.pattern = pattern;
+		    set_backlight_pattern(pattern);
+		    save_config();
+	    };
+
+	register_action(
+	    "backlight_patterns", backlight_patterns, backlight_patterns_handler);
+
+	action polling_interval{
 	    .description = "Polling interval",
 	    .parameters  = {{
 	         .type        = parameter::param_uint,
@@ -46,90 +101,42 @@ const std::unordered_map<std::string, action const> apex_100::get_actions()
         }},
 	};
 
-	auto save = action{
+	auto polling_interval_handler =
+	    [this](std::vector<std::string> const& parameters) {
+		    if (parameters.size() < 1)
+			    throw std::runtime_error(
+			        "Missig arguements for polling_interval");
+
+		    std::uint8_t polling_interval;
+		    try {
+			    auto val = std::stoi(parameters[0]);
+			    if (val < 1 || val > 4)
+				    throw std::runtime_error("Invalid polling interval value");
+			    polling_interval = val;
+		    } catch (std::invalid_argument const& e) {
+			    throw std::runtime_error("Polling value isn't a number (" +
+			                             parameters[0] + ")");
+		    }
+
+		    m_config.polling_interval = polling_interval;
+		    set_polling_interval(polling_interval);
+		    save_config();
+	    };
+
+	register_action(
+	    "polling_interval", polling_interval, polling_interval_handler);
+
+	action save{
 	    .description = "Save data to onboard memory",
 	    .parameters  = {},
 	};
 
-	return {
-	    {"backlight_luminosity",         luminosity},
-	    {  "backlight_patterns", backlight_patterns},
-	    {    "polling_interval",            polling},
-	    {                "save",               save},
+	auto save_handler = [this](std::vector<std::string> const&) {
+		this->save();
+		save_config();
 	};
-}
 
-void apex_100::run_action(std::string const&              action_id,
-                          std::vector<std::string> const& parameters)
-{
-	if (action_id == "backlight_luminosity") {
-		if (parameters.size() < 1)
-			throw std::runtime_error(
-			    "Missig arguements for backlight_luminosity");
-
-		std::uint8_t backlight_value;
-		try {
-			auto val = std::stoi(parameters[0]);
-			if (val < 0 || val > 100)
-				throw std::runtime_error("Invalid luminosity value");
-			backlight_value = val;
-		} catch (std::invalid_argument const& e) {
-			throw std::runtime_error("Luminosity value isn't a number (" +
-			                         parameters[0] + ")");
-		}
-
-		m_config.backlight_luminosity = backlight_value;
-		set_backlight_luminosity(backlight_value);
-		save_config();
-
-	} else if (action_id == "polling_interval") {
-		if (parameters.size() < 1)
-			throw std::runtime_error("Missig arguements for polling_interval");
-
-		std::uint8_t polling_interval;
-		try {
-			auto val = std::stoi(parameters[0]);
-			if (val < 1 || val > 4)
-				throw std::runtime_error("Invalid polling interval value");
-			polling_interval = val;
-		} catch (std::invalid_argument const& e) {
-			throw std::runtime_error("Polling value isn't a number (" +
-			                         parameters[0] + ")");
-		}
-
-		m_config.polling_interval = polling_interval;
-		set_polling_interval(polling_interval);
-		save_config();
-
-	} else if (action_id == "backlight_patterns") {
-		if (parameters.size() < 1)
-			throw std::runtime_error(
-			    "Missig arguements for backlight_patterns");
-
-		auto pattern_string = parameters[0];
-
-		backlight_pattern pattern;
-		if (pattern_string == "static")
-			pattern = backlight_pattern::static_;
-		else if (pattern_string == "slow")
-			pattern = backlight_pattern::slow;
-		else if (pattern_string == "medium")
-			pattern = backlight_pattern::medium;
-		else if (pattern_string == "fast")
-			pattern = backlight_pattern::fast;
-		else
-			throw std::runtime_error("Invalid backlight pattern");
-
-		m_config.pattern = pattern;
-		set_backlight_pattern(pattern);
-		save_config();
-
-	} else if (action_id == "save") {
-		save();
-		save_config();
-
-	} else
-		throw std::runtime_error("Invalid action id: " + action_id);
+	register_action("save", save, save_handler);
 }
 
 void apex_100::set_backlight_luminosity(std::uint8_t luminosity) const

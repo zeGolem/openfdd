@@ -31,12 +31,6 @@ class rival_3_wireless : public driver
 		return "SteelSeries Rival 3 Wireless";
 	};
 
-	const std::unordered_map<std::string, action const> get_actions()
-	    const noexcept final;
-
-	void run_action(std::string const&              action_id,
-	                std::vector<std::string> const& parameters) final;
-
 	void set_static_color(std::uint8_t r, std::uint8_t g, std::uint8_t b) const;
 	void set_dpi(std::uint8_t               active_profile_id,
 	             std::vector<std::uint16_t> dpi_profiles) const;
@@ -50,6 +44,8 @@ class rival_3_wireless : public driver
 	nlohmann::json serialize_current_config() const noexcept override final;
 	void           deserialize_config(
 	              nlohmann::json const& config_on_disk) override final;
+
+	void create_actions() noexcept override final;
 
   private:
 	struct {

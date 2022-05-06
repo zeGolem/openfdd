@@ -18,6 +18,7 @@ class aerox_3_wireless : public driver
 	    : driver(dev, config)
 	{
 		deserialize_config(config->get_device_config(config_id()));
+		create_actions();
 	}
 
 	static bool is_compatible(std::shared_ptr<usb_device>);
@@ -32,12 +33,6 @@ class aerox_3_wireless : public driver
 		return "SteelSeries Aerox 3 Wireless";
 	};
 
-	const std::unordered_map<std::string, action const> get_actions()
-	    const noexcept final;
-
-	void run_action(std::string const&              action_id,
-	                std::vector<std::string> const& parameters) final;
-
 	void set_dpi(std::uint8_t               active_profile_id,
 	             std::vector<std::uint16_t> dpi_profiles) const;
 	void set_lighting_color(std::uint8_t                zone,
@@ -50,6 +45,8 @@ class aerox_3_wireless : public driver
 	nlohmann::json serialize_current_config() const noexcept override final;
 	void           deserialize_config(
 	              nlohmann::json const& config_on_disk) override final;
+
+	virtual void create_actions() noexcept override final;
 
   private:
 	struct {
