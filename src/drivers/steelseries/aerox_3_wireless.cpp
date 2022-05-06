@@ -1,6 +1,7 @@
 #include "drivers/steelseries/aerox_3_wireless.hpp"
 #include "drivers/driver.hpp"
 #include "steelseries.hpp"
+#include "utils.hpp"
 #include <array>
 #include <cstddef>
 #include <memory.h>
@@ -47,16 +48,8 @@ void aerox_3_wireless::create_actions() noexcept
 	{
 		CHECK_PARAMS_SIZE(1, dpi_profile);
 
-		std::uint8_t profile;
-		try {
-			auto _profile = std::stoi(parameters[0]);
-			if (_profile < 1 || _profile > 5)
-				throw std::runtime_error("Invalid DPI profile");
-			profile = _profile;
-		} catch (std::invalid_argument const& e) {
-			throw std::runtime_error("DPI profile value isn't a number (" +
-			                         parameters[0] + ")");
-		}
+		std::uint8_t profile =
+		    utils::stoi_safe(parameters[0], {.min = 1, .max = 5}, "Profile");
 
 		m_config.active_dpi_profile = profile;
 		set_dpi(profile, m_config.dpi_profiles);
@@ -88,21 +81,10 @@ void aerox_3_wireless::create_actions() noexcept
 	{
 		CHECK_PARAMS_SIZE(2, define_dpi_profile);
 
-		std::uint8_t  profile;
-		std::uint16_t value;
-		try {
-			auto _profile = std::stoi(parameters[0]);
-			if (_profile < 1 || _profile > 5)
-				throw std::runtime_error("Invalid DPI profile");
-			profile = _profile;
-
-			auto _value = std::stoi(parameters[1]);
-			if (_value < 100 || _value > 18000)
-				throw std::runtime_error("Invalid DPI value");
-			value = _value;
-		} catch (std::invalid_argument const& e) {
-			throw std::runtime_error("Error trying to parse string");
-		}
+		std::uint8_t profile = utils::stoi_safe(
+		    parameters[0], {.min = 1, .max = 5}, "DPI Profile");
+		std::uint16_t value = utils::stoi_safe(
+		    parameters[1], {.min = 100, .max = 18000}, "DPI Value");
 
 		m_config.dpi_profiles[profile - 1] = value;
 		set_dpi(m_config.active_dpi_profile, m_config.dpi_profiles);
@@ -135,18 +117,8 @@ void aerox_3_wireless::create_actions() noexcept
 	{
 		CHECK_PARAMS_SIZE(2, lighting_color);
 
-		std::uint8_t zone;
-
-		try {
-			auto _zone = std::stoi(parameters[0]);
-			if (_zone < 1 || _zone > 3)
-				throw std::runtime_error("Invalid color zone");
-
-			zone = _zone;
-
-		} catch (std::invalid_argument const& e) {
-			throw std::runtime_error("Error trying to parse string");
-		}
+		std::uint8_t zone =
+		    utils::stoi_safe(parameters[0], {.min = 1, .max = 3}, "Color zone");
 
 		// TODO Error checking...
 		auto         color = parameters[1];
@@ -174,17 +146,8 @@ void aerox_3_wireless::create_actions() noexcept
 	{
 		CHECK_PARAMS_SIZE(1, polling_interval);
 
-		std::uint8_t interval;
-
-		try {
-			auto _interval = std::stoi(parameters[0]);
-			if (_interval < 1 || _interval > 4)
-				throw std::runtime_error("Invalid interval");
-
-			interval = _interval;
-		} catch (std::invalid_argument const& e) {
-			throw std::runtime_error("Error parsing interval");
-		}
+		std::uint8_t interval =
+		    utils::stoi_safe(parameters[0], {.min = 1, .max = 4}, "Interval");
 
 		m_config.poll_interval = interval;
 		set_poll_interval(interval);
@@ -206,17 +169,8 @@ void aerox_3_wireless::create_actions() noexcept
 	{
 		CHECK_PARAMS_SIZE(1, sleep_timeout);
 
-		std::uint32_t timeout;
-
-		try {
-			auto _timeout = std::stoi(parameters[0]);
-			if (_timeout < 0 || _timeout > 1'200'000)
-				throw std::runtime_error("Invalid timeout");
-
-			timeout = _timeout;
-		} catch (std::invalid_argument const& e) {
-			throw std::runtime_error("Error parsing timeout");
-		}
+		std::uint32_t timeout = utils::stoi_safe(
+		    parameters[0], {.min = 0, .max = 1'200'000}, "Timeout");
 
 		m_config.sleep_timeout = timeout;
 		set_sleep_timeout(timeout);
