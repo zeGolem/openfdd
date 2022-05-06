@@ -6,6 +6,25 @@
 namespace utils
 {
 
+namespace daemon
+{
+
+#include <sys/syslog.h>
+
+enum log_level {
+	notice = LOG_NOTICE,
+	error  = LOG_ERR,
+};
+
+void log(std::string const& message, log_level ll = log_level::notice);
+
+void exit_error(std::string const& error);
+
+// Call this to become a daemon
+void become();
+
+} // namespace daemon
+
 struct stoi_checks {
 	std::optional<int> min;
 	std::optional<int> max;

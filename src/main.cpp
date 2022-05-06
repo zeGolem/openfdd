@@ -4,6 +4,7 @@
 #include "drivers/steelseries/apex_100.hpp"
 #include "drivers/steelseries/rival_3_wireless.hpp"
 #include "usb.hpp"
+#include "utils.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -107,8 +108,18 @@ int handle_actions(std::vector<std::shared_ptr<drivers::driver>> const& drivers,
 	return 0;
 }
 
+void daemon_main()
+{
+	utils::daemon::become();
+}
+
 int main(int argc, char** argv)
 {
+	if (argc > 1 && argv[1] == std::string("daemon")) {
+		daemon_main();
+		return 0;
+	}
+
 	usb_context ctx;
 	ctx.log_level(3);
 
