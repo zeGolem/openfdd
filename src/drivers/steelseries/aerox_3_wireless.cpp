@@ -291,8 +291,8 @@ void aerox_3_wireless::set_lighting_color(
 {
 	if (zone < 1 || zone > 3)
 		throw std::runtime_error("Invalid lighting zone, must be in [1, 3]");
-	--zone; // The zone ID is from 1 to 3 to be human readable, but the driver
-	        // wants it to be 0 to 2, so this converts it.
+	--zone; // The zone ID is from 1 to 3 to be human readable, but the
+	        // driver wants it to be 0 to 2, so this converts it.
 
 	std::vector<std::uint8_t> data = {
 	    // clang-format off
@@ -326,8 +326,9 @@ void aerox_3_wireless::set_sleep_timeout(std::uint32_t timeout_in_seconds) const
 	    0x69, // Nice packet ID
 	    // Timeout value (in reverse byte order to match what the driver
 	    // expects).
-	    // This uses some bit manipulation magic that I don't fully understand,
-	    // but it works, and the code looks nice, so I'm fine with it
+	    // This uses some bit manipulation magic that I don't fully
+	    // understand, but it works, and the code looks nice, so I'm fine
+	    // with it
 	    static_cast<std::uint8_t>((timeout_in_seconds & 0x000000ff) >> 0),
 	    static_cast<std::uint8_t>((timeout_in_seconds & 0x0000ff00) >> 8),
 	    static_cast<std::uint8_t>((timeout_in_seconds & 0x00ff0000) >> 16),
