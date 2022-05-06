@@ -5,8 +5,35 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <thread>
+#include <unistd.h>
 
 socket_connection::socket_connection(int fd) : m_fd(fd) {}
+
+std::string const socket_connection::read_line() const
+{
+	std::string data = "";
+
+	int read_result = 0;
+
+	do {
+		char buffer{};
+		read_result = ::read(m_fd, &buffer, 1);
+
+		if (read_result < 0)
+			throw std::runtime_error("Can't read from socket!");
+
+		if (buffer == '\n') break;
+
+		data += buffer;
+	} while (read_result != 0);
+
+	return data;
+}
+
+void socket_connection::write_string(std::string const& data) const
+{
+	::write(m_fd, data.c_str(), data.length());
+}
 
 unix_socket::unix_socket(std::string const& path)
 {

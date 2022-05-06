@@ -11,6 +11,9 @@ class socket_connection
   public:
 	socket_connection(int fd);
 
+	std::string const read_line() const;
+	void              write_string(std::string const&) const;
+
   private:
 	int m_fd;
 };
