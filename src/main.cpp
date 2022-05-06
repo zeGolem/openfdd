@@ -3,6 +3,7 @@
 #include "drivers/steelseries/aerox_3_wireless.hpp"
 #include "drivers/steelseries/apex_100.hpp"
 #include "drivers/steelseries/rival_3_wireless.hpp"
+#include "unix_socket.hpp"
 #include "usb.hpp"
 #include "utils.hpp"
 #include <cstddef>
@@ -111,6 +112,15 @@ int handle_actions(std::vector<std::shared_ptr<drivers::driver>> const& drivers,
 void daemon_main()
 {
 	utils::daemon::become();
+	try {
+		unix_socket socket("/var/run/openfdd.socket");
+
+		socket.listen();
+		socket.wait_for_connection_and_accept(
+		    [](auto) { utils::daemon::log("Got a new client!"); });
+	} catch (std::runtime_error const& e) {
+		utils::daemon::exit_error(e.what());
+	}
 }
 
 int main(int argc, char** argv)
