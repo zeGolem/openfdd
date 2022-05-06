@@ -58,7 +58,8 @@ syntax:
   * Missing RGB configurations
   * Missing button remapping
 * SteelSeries Aerox 3 Wireless
-  * Supports only setting the DPI, the rest is comming soon™!
+  * Supports setting static lighting colors, sleep timeouts, polling interval,
+  and setting up DPI profiles.
 
 And others coming! There isn't much stuff yet here, because I don't have
 many Fancy Devices™... I do have a SteelSeries Rival 100 & 110, and just
@@ -67,6 +68,9 @@ but that's about it for now.
 If you have Fancy Devices™ of your own, I will be making a guide soon
 on how to write a driver for it. My goal is to lay the groundwork to make
 it as easy as possible for new devices to be ported!
+
+Currently, the Aerox 3 Wireless driver is the cleanest one, use that as a
+starting point if you want to work on your own.
 
 # Want to help?
 
