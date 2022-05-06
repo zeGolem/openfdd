@@ -15,12 +15,14 @@
 std::shared_ptr<drivers::driver> get_driver_if_available(
     std::shared_ptr<usb_device> dev, std::shared_ptr<config_manager> config)
 {
-#define check_driver(drv)                                                      \
+#define CHECK_DRIVER(drv)                                                      \
 	if (drv::is_compatible(dev)) return std::make_shared<drv>(dev, config);
 
-	check_driver(drivers::steelseries::apex_100);
-	check_driver(drivers::steelseries::rival_3_wireless);
-	check_driver(drivers::steelseries::aerox_3_wireless);
+	CHECK_DRIVER(drivers::steelseries::apex_100);
+	CHECK_DRIVER(drivers::steelseries::rival_3_wireless);
+	CHECK_DRIVER(drivers::steelseries::aerox_3_wireless);
+#undef CHECK_DRIVER
+
 	return nullptr;
 }
 
