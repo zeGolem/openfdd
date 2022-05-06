@@ -28,6 +28,10 @@ void apex_100::create_actions() noexcept
 #define REGISTER_ACTION(action_name)                                           \
 	register_action(#action_name, action_name, action_name##_handler)
 
+#define CHECK_PARAMS_SIZE(minimum_size, action_name)                           \
+	if (parameters.size() < minimum_size)                                      \
+		throw std::runtime_error("Missing arguements for " #action_name);
+
 	action backlight_luminosity{
 	    .description = "Backlight luminosity",
 	    .parameters  = {{
@@ -149,6 +153,7 @@ void apex_100::create_actions() noexcept
 
 #undef CREATE_ACTION_HANDLER
 #undef REGISTER_ACTION
+#undef CHECK_PARAMS_SIZE
 }
 
 void apex_100::set_backlight_luminosity(std::uint8_t luminosity) const

@@ -29,6 +29,10 @@ void rival_3_wireless::create_actions() noexcept
 #define REGISTER_ACTION(action_name)                                           \
 	register_action(#action_name, action_name, action_name##_handler)
 
+#define CHECK_PARAMS_SIZE(minimum_size, action_name)                           \
+	if (parameters.size() < minimum_size)                                      \
+		throw std::runtime_error("Missing arguements for " #action_name);
+
 	action dpi_presset{
 	    .description = "Set the active DPI presset",
 	    .parameters  = {{
@@ -244,6 +248,7 @@ void rival_3_wireless::create_actions() noexcept
 
 #undef CREATE_ACTION_HANDLER
 #undef REGISTER_ACTION
+#undef CHECK_PARAMS_SIZE
 }
 
 void rival_3_wireless::set_dpi(std::uint8_t               active_profile_id,

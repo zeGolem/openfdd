@@ -30,6 +30,10 @@ void aerox_3_wireless::create_actions() noexcept
 #define REGISTER_ACTION(action_name)                                           \
 	register_action(#action_name, action_name, action_name##_handler)
 
+#define CHECK_PARAMS_SIZE(minimum_size, action_name)                           \
+	if (parameters.size() < minimum_size)                                      \
+		throw std::runtime_error("Missing arguements for " #action_name);
+
 	action dpi_profile{
 	    .description = "Set the current DPI profile",
 	    .parameters  = {{
@@ -41,8 +45,7 @@ void aerox_3_wireless::create_actions() noexcept
 
 	CREATE_ACTION_HANDLER(dpi_profile)
 	{
-		if (parameters.size() < 1)
-			throw std::runtime_error("Missig arguements for dpi_profile");
+		CHECK_PARAMS_SIZE(1, dpi_profile);
 
 		std::uint8_t profile;
 		try {
@@ -83,9 +86,7 @@ void aerox_3_wireless::create_actions() noexcept
 
 	CREATE_ACTION_HANDLER(define_dpi_profile)
 	{
-		if (parameters.size() < 2)
-			throw std::runtime_error(
-			    "Missig arguements for define_dpi_profile");
+		CHECK_PARAMS_SIZE(2, define_dpi_profile);
 
 		std::uint8_t  profile;
 		std::uint16_t value;
@@ -132,8 +133,7 @@ void aerox_3_wireless::create_actions() noexcept
 
 	CREATE_ACTION_HANDLER(lighting_color)
 	{
-		if (parameters.size() < 2)
-			throw std::runtime_error("Missig arguements for lighting_color");
+		CHECK_PARAMS_SIZE(2, lighting_color);
 
 		std::uint8_t zone;
 
@@ -172,8 +172,7 @@ void aerox_3_wireless::create_actions() noexcept
 
 	CREATE_ACTION_HANDLER(polling_interval)
 	{
-		if (parameters.size() < 1)
-			throw std::runtime_error("Missing arguements for polling_interval");
+		CHECK_PARAMS_SIZE(1, polling_interval);
 
 		std::uint8_t interval;
 
@@ -205,8 +204,7 @@ void aerox_3_wireless::create_actions() noexcept
 
 	CREATE_ACTION_HANDLER(sleep_timeout)
 	{
-		if (parameters.size() < 1)
-			throw std::runtime_error("Missing arguements for sleep_timeout");
+		CHECK_PARAMS_SIZE(1, sleep_timeout);
 
 		std::uint32_t timeout;
 
@@ -234,7 +232,7 @@ void aerox_3_wireless::create_actions() noexcept
 
 	CREATE_ACTION_HANDLER(save)
 	{
-		(void)parameters;
+		CHECK_PARAMS_SIZE(0, save);
 		this->save();
 		save_config();
 	};
@@ -243,6 +241,7 @@ void aerox_3_wireless::create_actions() noexcept
 
 #undef CREATE_ACTION_HANDLER
 #undef REGISTER_ACTION
+#undef CHECK_PARAMS_SIZE
 }
 
 void aerox_3_wireless::set_dpi(std::uint8_t               active_profile_id,
