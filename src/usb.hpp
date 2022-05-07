@@ -50,6 +50,12 @@ class usb_device
 class usb_context
 {
   public:
+	// TODO: Is there a better place for this?
+	static bool supports_hotplug() noexcept
+	{
+		return libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG) != 0;
+	}
+
 	usb_context();
 
 	~usb_context() noexcept { libusb_exit(m_context); }
