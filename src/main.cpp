@@ -127,6 +127,7 @@ void handle_socket_connection(
 
 		if (command == "ping")
 			connection->write_string("pong\n");
+
 		else if (command == "list-devices") {
 			// For each driver available
 			for (std::size_t i = 0; i < drivers.size(); ++i) {
@@ -134,6 +135,29 @@ void handle_socket_connection(
 				connection->write_string(std::to_string(i) + ":" +
 				                         driver->name() + '\n');
 			}
+		}
+
+		else if (command == "list-actions") {
+			if (input_argv.size() < 2) {
+				// TODO: This should throw an error, but there's no error
+				//       handling yet...
+				// TODO: Handle errors thrown
+
+				connection->write_string("Not enough arguements\n");
+				connection->write_string("FAIL\n");
+				continue;
+			}
+
+			auto const& driver_id =
+			    utils::stoi_safe(input_argv[1],
+			                     {.min = 0, .max = drivers.size() - 1},
+			                     "Driver ID");
+
+			auto const& driver = drivers.at(driver_id);
+
+			for (auto const& [action_id, action] : driver->get_actions())
+				connection->write_string(action_id + ':' + action.description +
+				                         '\n');
 		}
 
 		connection->write_string("DONE\n");
