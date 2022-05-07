@@ -109,8 +109,9 @@ int handle_actions(std::vector<std::shared_ptr<drivers::driver>> const& drivers,
 	return 0;
 }
 
-void handle_socket_connection(std::shared_ptr<socket_connection> connection,
-                              std::vector<std::shared_ptr<drivers::driver>>)
+void handle_socket_connection(
+    std::shared_ptr<socket_connection>            connection,
+    std::vector<std::shared_ptr<drivers::driver>> drivers)
 {
 	utils::daemon::log("New connection");
 
@@ -119,7 +120,18 @@ void handle_socket_connection(std::shared_ptr<socket_connection> connection,
 	while (true) {
 		auto const& command = connection->read_line();
 
-		if (command == "ping") connection->write_string("pong\n");
+		if (command == "ping")
+			connection->write_string("pong\n");
+		else if (command == "list-devices") {
+			// For each driver available
+			for (std::size_t i = 0; i < drivers.size(); ++i) {
+				auto const& driver = drivers[i];
+				connection->write_string(std::to_string(i) + ":" +
+				                         driver->name() + '\n');
+			}
+		}
+
+		connection->write_string("DONE\n");
 	}
 }
 
