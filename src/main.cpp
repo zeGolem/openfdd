@@ -109,15 +109,34 @@ int handle_actions(std::vector<std::shared_ptr<drivers::driver>> const& drivers,
 	return 0;
 }
 
+void handle_socket_connection(std::shared_ptr<socket_connection> connection,
+                              std::vector<std::shared_ptr<drivers::driver>>)
+{
+	utils::daemon::log("New connection");
+
+	connection->write_string("openfdd\n");
+
+	while (true) {
+		auto const& command = connection->read_line();
+
+		if (command == "ping") connection->write_string("pong\n");
+	}
+}
+
 void daemon_main()
 {
 	utils::daemon::become();
+
+	usb_context ctx;
+	auto        drivers = get_drivers_for_connected_devices(ctx);
+
 	try {
 		unix_socket socket("/var/run/openfdd.socket");
 
 		socket.listen();
-		socket.wait_for_connection_and_accept(
-		    [](auto) { utils::daemon::log("Got a new client!"); });
+		socket.wait_for_connection_and_accept([drivers](auto connection) {
+			handle_socket_connection(connection, drivers);
+		});
 	} catch (std::runtime_error const& e) {
 		utils::daemon::exit_error(e.what());
 	}
