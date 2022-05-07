@@ -118,7 +118,12 @@ void handle_socket_connection(
 	connection->write_string("openfdd\n");
 
 	while (true) {
-		auto const& command = connection->read_line();
+		auto const& input = connection->read_line();
+		auto const& input_argv =
+		    utils::split(input, ' '); // TODO: Better parsing
+		                              // (support spaces and quotes)
+
+		auto const& command = input_argv[0];
 
 		if (command == "ping")
 			connection->write_string("pong\n");
