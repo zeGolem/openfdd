@@ -1,12 +1,14 @@
 #include "utils.hpp"
 #include <cstdlib>
 #include <filesystem>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <sys/stat.h>
 #include <sys/syslog.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <vector>
 
 namespace utils
 {
@@ -84,6 +86,19 @@ int stoi_safe(std::string input,
 		                         std::to_string(checks.max.value()));
 
 	return converted;
+}
+
+std::vector<std::string> split(std::string const& input, char delimiter)
+{
+	std::stringstream stream(input);
+
+	std::vector<std::string> result{};
+
+	std::string part;
+	while (std::getline(stream, part, delimiter))
+		result.push_back(part);
+
+	return result;
 }
 
 } // namespace utils

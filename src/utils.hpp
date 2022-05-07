@@ -3,6 +3,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <vector>
 namespace utils
 {
 
@@ -50,5 +51,7 @@ constexpr auto scale(
 	return (((value - from_min) / (from_max - from_min)) * (to_max - to_min)) +
 	       to_min;
 }
+
+std::vector<std::string> split(std::string const& input, char delimiter);
 
 } // namespace utils
