@@ -4,7 +4,7 @@ set -ex;
 
 # TODO: Better build system?
 
-SOURCES="src/*.cpp src/drivers/driver.cpp src/drivers/*/*.cpp"
+SOURCES="src/*.cpp src/usb/*.cpp src/drivers/driver.cpp src/drivers/*/*.cpp"
 
 g++ $SOURCES                     \
 	-lusb-1.0                    \
