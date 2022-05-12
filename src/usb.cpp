@@ -88,3 +88,28 @@ std::vector<std::shared_ptr<usb_device>> usb_context::get_devices() const
 
 	return devices;
 }
+
+void usb_context::register_hotplug_callback(
+    const hotplug_event&       events_to_register,
+    libusb_hotplug_callback_fn callback,
+    void*                      data) const
+{
+	auto event_flag = 0;
+	event_flag |=
+	    events_to_register.arrived ? LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED : 0;
+	event_flag |=
+	    events_to_register.left ? LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT : 0;
+
+	auto result = libusb_hotplug_register_callback(m_context,
+	                                               event_flag,
+	                                               0,
+	                                               LIBUSB_HOTPLUG_MATCH_ANY,
+	                                               LIBUSB_HOTPLUG_MATCH_ANY,
+	                                               LIBUSB_HOTPLUG_MATCH_ANY,
+	                                               callback,
+	                                               data,
+	                                               NULL);
+
+	if (result != LIBUSB_SUCCESS)
+		throw std::runtime_error("Can't setup hotplug handler");
+}
