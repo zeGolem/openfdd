@@ -27,6 +27,13 @@ class device_manager
 
 	void handle_hotplugs() const;
 
+	std::unordered_map<usb_device::identifier,
+	                   std::shared_ptr<usb_device>> const&
+	devices() const noexcept
+	{
+		return m_device_list;
+	}
+
   private:
 	std::shared_ptr<usb_context> m_context;
 	std::unordered_map<usb_device::identifier, std::shared_ptr<usb_device>>
