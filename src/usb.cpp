@@ -24,6 +24,12 @@ usb_device::id usb_device::get_id() const
 	return {descriptor.idVendor, descriptor.idProduct};
 }
 
+usb_device::identifier usb_device::get_identifier() const noexcept
+{
+	return {.bus  = libusb_get_bus_number(m_device),
+	        .port = libusb_get_port_number(m_device)};
+}
+
 int usb_device::control_transfer(std::uint8_t              request_type,
                                  std::uint8_t              b_request,
                                  std::uint16_t             w_value,
@@ -69,7 +75,8 @@ std::shared_ptr<usb_device> usb_context::get_device(
 	return std::make_shared<usb_device>(usb_device(handle));
 }
 
-std::vector<std::shared_ptr<usb_device>> usb_context::get_devices() const
+std::unordered_map<usb_device::identifier, std::shared_ptr<usb_device>> usb_context::
+    get_devices() const
 {
 	libusb_device** native_list;
 	auto device_count = libusb_get_device_list(m_context, &native_list);
@@ -77,12 +84,14 @@ std::vector<std::shared_ptr<usb_device>> usb_context::get_devices() const
 	if (device_count < 0)
 		throw std::runtime_error("Couldn't get the device list");
 
-	std::vector<std::shared_ptr<usb_device>> devices(device_count);
+	std::unordered_map<usb_device::identifier, std::shared_ptr<usb_device>> devices;
 
 	// Casting is kinda ugly, but avoids a warning about types.
 	// It's fine to ignore it because we already checked device_count >= 0
-	for (std::size_t i = 0; i < (std::size_t)device_count; ++i)
-		devices[i] = std::make_shared<usb_device>(native_list[i]);
+	for (std::size_t i = 0; i < (std::size_t)device_count; ++i) {
+		auto const& dev = std::make_shared<usb_device>(native_list[i]);
+		devices[dev->get_identifier()] = dev;
+	}
 
 	libusb_free_device_list(native_list, 1);
 

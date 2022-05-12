@@ -23,8 +23,7 @@ void device_manager::handle_hotplugs() const
 		    if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED)
 			    this_->register_device(std::make_shared<usb_device>(device));
 		    else
-			    // TODO
-			    ;
+				this_->unregister_device(usb_device(device).get_identifier());
 
 		    return 0;
 	    },

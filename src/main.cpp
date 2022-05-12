@@ -39,7 +39,7 @@ std::vector<std::shared_ptr<drivers::driver>> get_drivers_for_connected_devices(
 
 	std::vector<std::shared_ptr<drivers::driver>> drivers;
 
-	for (auto const& dev : devices) {
+	for (auto const& [_, dev] : devices) {
 		if (auto driver = get_driver_if_available(dev, config)) {
 			dev->open();
 			drivers.push_back(driver);

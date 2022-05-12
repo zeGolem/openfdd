@@ -1,15 +1,23 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <libusb-1.0/libusb.h>
 #include <memory>
 #include <optional>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
 
 class usb_device
 {
   public:
+	// Identifies a USB device plugged into the computer
+	struct identifier {
+		std::uint8_t bus;
+		std::uint8_t port;
+	};
+
 	struct id {
 		std::uint16_t id_vendor;
 		std::uint16_t id_product;
@@ -33,7 +41,11 @@ class usb_device
 
 	id get_id() const;
 
-	// TODO: Find better arguements to pass (request direction, recipient, ...)
+	// TODO: Difference between this and id? Are both needed?
+	identifier get_identifier() const noexcept;
+
+	// TODO: Find better arguements to pass (request direction, recipient,
+	// ...)
 	// TODO: Use enums when possible
 	int control_transfer(std::uint8_t              request_type,
 	                     std::uint8_t              b_request,
@@ -70,7 +82,8 @@ class usb_context
 	std::shared_ptr<usb_device> get_device(std::uint16_t vendor_id,
 	                                       std::uint16_t product_id) const;
 
-	std::vector<std::shared_ptr<usb_device>> get_devices() const;
+	std::unordered_map<usb_device::identifier, std::shared_ptr<usb_device>>
+	get_devices() const;
 
 	// TODO: This feels a bit too C-y with the libusb_hotplug_callback_fn &
 	//       void*. Are there way to wrap those into C++ types?
@@ -83,3 +96,22 @@ class usb_context
   private:
 	libusb_context* m_context;
 };
+
+// Hashing fucntion to use usb_device::identifier as a key in a map
+// TODO: Is there a better place for this?
+// (shamelessly stolent from: https://stackoverflow.com/a/17017281/16158640)
+template <> struct std::hash<usb_device::identifier> {
+	std::size_t operator()(usb_device::identifier const& id) const noexcept
+	{
+		std::size_t h1 = std::hash<std::uint8_t>{}(id.bus);
+		std::size_t h2 = std::hash<std::uint8_t>{}(id.port);
+		return h1 ^ (h2 << 1);
+	}
+};
+
+// TODO: This shoud most likely be somewhere else...
+inline bool operator==(const usb_device::identifier& lhs,
+                       const usb_device::identifier& rhs)
+{
+	return lhs.bus == rhs.bus && lhs.port == rhs.port;
+}
