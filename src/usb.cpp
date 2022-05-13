@@ -75,8 +75,8 @@ std::shared_ptr<usb_device> usb_context::get_device(
 	return std::make_shared<usb_device>(usb_device(handle));
 }
 
-std::unordered_map<usb_device::identifier, std::shared_ptr<usb_device>> usb_context::
-    get_devices() const
+std::unordered_map<usb_device::identifier, std::shared_ptr<usb_device>>
+usb_context::get_devices() const
 {
 	libusb_device** native_list;
 	auto device_count = libusb_get_device_list(m_context, &native_list);
@@ -84,7 +84,8 @@ std::unordered_map<usb_device::identifier, std::shared_ptr<usb_device>> usb_cont
 	if (device_count < 0)
 		throw std::runtime_error("Couldn't get the device list");
 
-	std::unordered_map<usb_device::identifier, std::shared_ptr<usb_device>> devices;
+	std::unordered_map<usb_device::identifier, std::shared_ptr<usb_device>>
+	    devices;
 
 	// Casting is kinda ugly, but avoids a warning about types.
 	// It's fine to ignore it because we already checked device_count >= 0
