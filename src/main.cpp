@@ -30,8 +30,7 @@ void handle_socket_connection(std::shared_ptr<socket_connection> connection,
 	while (true) {
 		auto const& input = connection->read_line();
 		auto const& input_argv =
-		    utils::split(input, ' '); // TODO: Better parsing
-		                              // (support spaces and quotes)
+		    utils::split(input, ','); // TODO: Better parsing
 
 		auto const& command = input_argv[0];
 
@@ -52,8 +51,7 @@ void handle_socket_connection(std::shared_ptr<socket_connection> connection,
 				//       handling yet...
 				// TODO: Handle errors thrown
 
-				connection->write_string("Not enough arguements\n");
-				connection->write_string("FAIL\n");
+				connection->write_string("fail,Not enough arguements\n");
 				continue;
 			}
 
@@ -62,11 +60,11 @@ void handle_socket_connection(std::shared_ptr<socket_connection> connection,
 			auto const& driver = drivers[driver_id];
 
 			for (auto const& [action_id, action] : driver->get_actions())
-				connection->write_string(action_id + ':' + action.description +
+				connection->write_string(action_id + ',' + action.description +
 				                         '\n');
 		}
 
-		connection->write_string("DONE\n");
+		connection->write_string("done\n");
 	}
 }
 
