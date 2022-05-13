@@ -13,7 +13,7 @@ void device_manager::handle_hotplugs()
 	if (!usb_context::supports_hotplug())
 		throw std::runtime_error("Hotplug isn't supported!");
 
-	m_context->register_hotplug_callback(
+	m_context.register_hotplug_callback(
 	    {.arrived = true, .left = true},
 	    [](libusb_context*,
 	       libusb_device*       device,
@@ -35,7 +35,7 @@ void device_manager::handle_hotplugs()
 	// TODO: Error handling. usb_context::wait_for_event can throw.
 	m_hotplug_handling_thread.reset(new std::thread([this]() {
 		while (true)
-			this->m_context->wait_for_event();
+			this->m_context.wait_for_event();
 	}));
 }
 

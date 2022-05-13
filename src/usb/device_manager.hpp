@@ -12,9 +12,9 @@ namespace usb
 class device_manager
 {
   public:
-	device_manager(std::shared_ptr<usb_context> context) : m_context(context)
+	device_manager(usb_context const& context) : m_context(context)
 	{
-		m_device_list = context->get_devices();
+		m_device_list = context.get_devices();
 	}
 
 	inline void register_device(std::shared_ptr<usb_device> device)
@@ -43,7 +43,7 @@ class device_manager
 	}
 
   private:
-	std::shared_ptr<usb_context> m_context;
+	usb_context const& m_context;
 	std::unordered_map<usb_device::identifier, std::shared_ptr<usb_device>>
 	    m_device_list;
 
