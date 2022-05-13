@@ -3,11 +3,12 @@
 #include <libusb-1.0/libusb.h>
 #include <memory>
 #include <stdexcept>
+#include <thread>
 
 namespace usb
 {
 
-void device_manager::handle_hotplugs() const
+void device_manager::handle_hotplugs()
 {
 	if (!usb_context::supports_hotplug())
 		throw std::runtime_error("Hotplug isn't supported!");
@@ -28,6 +29,12 @@ void device_manager::handle_hotplugs() const
 		    return 0;
 	    },
 	    (void*)this);
+
+	// TODO: Error handling. usb_context::wait_for_event can throw.
+	m_hotplug_handling_thread.reset(new std::thread([this]() {
+		while (true)
+			this->m_context->wait_for_event();
+	}));
 }
 
 } // namespace usb
