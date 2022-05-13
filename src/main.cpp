@@ -1,10 +1,12 @@
 #include "config.hpp"
 #include "drivers/driver.hpp"
+#include "drivers/manager.hpp"
 #include "drivers/steelseries/aerox_3_wireless.hpp"
 #include "drivers/steelseries/apex_100.hpp"
 #include "drivers/steelseries/rival_3_wireless.hpp"
 #include "unix_socket.hpp"
 #include "usb.hpp"
+#include "usb/device_manager.hpp"
 #include "utils.hpp"
 #include <cstddef>
 #include <cstdint>
@@ -193,11 +195,21 @@ int main(int argc, char** argv)
 	usb_context ctx;
 	ctx.log_level(3);
 
-	auto drivers = get_drivers_for_connected_devices(ctx);
+	usb::device_manager dev_manager(ctx);
+	drivers::manager    drv_manager(dev_manager);
+
+	auto drivers = drv_manager.create_drivers_for_available_devices();
+
+	// TODO: Hack because the rest of the code doesn't yet understand driver
+	//       maps
+
+	std::vector<std::shared_ptr<drivers::driver>> driver_list = {};
+	for (auto const& [identifier, driver] : drivers)
+		driver_list.push_back(driver);
 
 	try {
-		if (argc == 1) return show_available_devices(drivers);
-		if (argc > 2) return handle_actions(drivers, argc, argv);
+		if (argc == 1) return show_available_devices(driver_list);
+		if (argc > 2) return handle_actions(driver_list, argc, argv);
 	} catch (std::runtime_error const& e) {
 		std::cerr << "Runtime error: " << e.what() << "\n";
 		return -1;
