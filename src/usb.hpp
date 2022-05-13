@@ -93,6 +93,8 @@ class usb_context
 	                               libusb_hotplug_callback_fn,
 	                               void* data) const;
 
+	void wait_for_event() const;
+
   private:
 	libusb_context* m_context;
 };

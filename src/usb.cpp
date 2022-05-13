@@ -123,3 +123,10 @@ void usb_context::register_hotplug_callback(
 	if (result != LIBUSB_SUCCESS)
 		throw std::runtime_error("Can't setup hotplug handler");
 }
+
+void usb_context::wait_for_event() const
+{
+	auto result = libusb_handle_events(m_context);
+	if (result != LIBUSB_SUCCESS)
+		throw std::runtime_error("Couldn't handle events!");
+}
