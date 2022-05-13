@@ -1,6 +1,8 @@
 #include "utils.hpp"
+#include <csignal>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -99,6 +101,28 @@ std::vector<std::string> split(std::string const& input, char delimiter)
 		result.push_back(part);
 
 	return result;
+}
+
+void kill_all(std::string const& process_name)
+{
+	for (auto const& current_process_dir :
+	     std::filesystem::directory_iterator("/proc/")) {
+
+		std::ifstream cmdline_file(current_process_dir.path().string() +
+		                           "/cmdline");
+
+		std::string executable_name;
+		cmdline_file >>
+		    executable_name; // This works because the cmdline file contains
+		                     // argv separated by NULL bytes, so reading until
+		                     // the first \0 gets us argv[0]
+
+		if (executable_name == process_name) {
+			auto const& pid_string = current_process_dir.path().stem().string();
+			if (kill(std::stoi(pid_string), SIGKILL) < 0)
+				throw std::runtime_error("Couldn't kill process " + pid_string);
+		}
+	}
 }
 
 } // namespace utils
