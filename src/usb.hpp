@@ -1,5 +1,6 @@
 #pragma once
 
+#include "utils.hpp"
 #include <cstdint>
 #include <functional>
 #include <iomanip>
@@ -27,6 +28,16 @@ class usb_device
 			ss << ':';
 			ss << std::setfill('0') << std::setw(4) << std::hex << port;
 			return ss.str();
+		}
+
+		static identifier from(std::string const& identifier_string)
+		{
+			auto const& split_id = utils::split(identifier_string, ':');
+			if (split_id.size() < 2) return {};
+
+			// TODO: Size check! Add a util for safe stoi in base 16
+			return {.bus  = (std::uint8_t)std::stoi(split_id[0]),
+			        .port = (std::uint8_t)std::stoi(split_id[1])};
 		}
 	};
 
