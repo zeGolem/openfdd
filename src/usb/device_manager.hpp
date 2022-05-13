@@ -1,6 +1,7 @@
 #pragma once
 
 #include "usb.hpp"
+#include <functional>
 #include <memory>
 #include <thread>
 #include <unordered_map>
@@ -35,12 +36,19 @@ class device_manager
 		return m_device_list;
 	}
 
+	void set_hotplug_notification(
+	    std::function<void()> notification_callback) noexcept
+	{
+		m_hotplug_notification = notification_callback;
+	}
+
   private:
 	std::shared_ptr<usb_context> m_context;
 	std::unordered_map<usb_device::identifier, std::shared_ptr<usb_device>>
 	    m_device_list;
 
 	std::unique_ptr<std::thread> m_hotplug_handling_thread;
+	std::function<void()>        m_hotplug_notification;
 };
 
 } // namespace usb

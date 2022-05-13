@@ -26,6 +26,8 @@ void device_manager::handle_hotplugs()
 		    else
 			    this_->unregister_device(usb_device(device).get_identifier());
 
+		    if (this_->m_hotplug_notification) this_->m_hotplug_notification();
+
 		    return 0;
 	    },
 	    (void*)this);
