@@ -2,10 +2,13 @@
 
 #include <cstdint>
 #include <functional>
+#include <iomanip>
 #include <libusb-1.0/libusb.h>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -16,6 +19,15 @@ class usb_device
 	struct identifier {
 		std::uint8_t bus;
 		std::uint8_t port;
+
+		std::string const stringify() const noexcept
+		{
+			std::stringstream ss;
+			ss << std::setfill('0') << std::setw(4) << std::hex << bus;
+			ss << ':';
+			ss << std::setfill('0') << std::setw(4) << std::hex << port;
+			return ss.str();
+		}
 	};
 
 	struct id {
