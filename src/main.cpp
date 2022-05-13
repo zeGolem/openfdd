@@ -101,19 +101,8 @@ int handle_actions(std::vector<std::shared_ptr<drivers::driver>> const& drivers,
 	    argc - 3; // argv[1] is the driver id, argv[2] is the action id.
 	std::vector<std::string> action_params(action_parameter_count);
 
-	// Copy all the provided params to be passed to the action
-	// Starting at argv[3] because the previous values have already been read
-	for (std::size_t i = 0; i < action_parameter_count; ++i)
-		action_params[i] = argv[i + 3];
-
-	driver->run_action(action_id, action_params);
-
-	return 0;
-}
-
-void handle_socket_connection(
-    std::shared_ptr<socket_connection>            connection,
-    std::vector<std::shared_ptr<drivers::driver>> drivers)
+void handle_socket_connection(std::shared_ptr<socket_connection> connection,
+                              drivers::identifiable_driver_map   drivers)
 {
 	utils::daemon::log("New connection");
 
@@ -132,10 +121,9 @@ void handle_socket_connection(
 
 		else if (command == "list-devices") {
 			// For each driver available
-			for (std::size_t i = 0; i < drivers.size(); ++i) {
-				auto const& driver = drivers[i];
-				connection->write_string(std::to_string(i) + ":" +
-				                         driver->name() + '\n');
+			for (auto const& [id, driver] : drivers) {
+				connection->write_string(id.stringify() + "," + driver->name() +
+				                         '\n');
 			}
 		}
 
@@ -150,12 +138,9 @@ void handle_socket_connection(
 				continue;
 			}
 
-			auto const& driver_id =
-			    utils::stoi_safe(input_argv[1],
-			                     {.min = 0, .max = drivers.size() - 1},
-			                     "Driver ID");
+			auto const& driver_id = usb_device::identifier::from(input_argv[1]);
 
-			auto const& driver = drivers.at(driver_id);
+			auto const& driver = drivers[driver_id];
 
 			for (auto const& [action_id, action] : driver->get_actions())
 				connection->write_string(action_id + ':' + action.description +
@@ -170,8 +155,11 @@ void daemon_main()
 {
 	utils::daemon::become();
 
-	usb_context ctx;
-	auto        drivers = get_drivers_for_connected_devices(ctx);
+	usb_context         ctx;
+	usb::device_manager dev_manager(ctx);
+	drivers::manager    drv_manager(dev_manager);
+
+	auto drivers = drv_manager.create_drivers_for_available_devices();
 
 	try {
 		unix_socket socket("/var/run/openfdd.socket");
