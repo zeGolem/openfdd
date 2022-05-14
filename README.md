@@ -39,16 +39,25 @@ Now run it with:
  $ sudo ./openfdd
 ```
 
-This will list all the connected devices that have a driver, and the actions
-you can run on them.
+This will start the openfdd daemon. You can interract with it using the following
+UNIX socket: `/var/run/openfdd.socket`. It uses a CSV-style syntax for now, but
+will later move to using non-ASCII packets, this is just to make debugging easier.
 
-The driver id is next to the name of the device, all the entries bellow
-are actions, starting with their name. To run an action, use the following
-syntax:
+The daemon will first greet you with `openfdd` as a welcome string, to make sure
+your connection worked, after that you can start sending commands.  
+You can currently use the following commands:
 
-```console
- $ sudo ./openfdd [driver_id] [action_name] [optional_parameters]
-```
+* `ping`  
+ Responds with `pong`. Simple test to check openfdd is still running
+* `list-devices`  
+ Sends the list of connected and supported devices, with the identifier and the
+ name, comma-separated.
+* `list-actions,<identifier>`  
+ Sends the list of all actions available for the device matching the specified
+ identifier.
+
+The daemon itself will send a `done` after every response, and `fail,<reason>` when
+an error occurs.
 
 # Supported devices
 
@@ -91,8 +100,6 @@ You can also look for TODOs using:
 
 * [ ] Configuration saving and loading
   * [ ] Multiple configurations for each device
-* [ ] Make the driver a daemon that can be interacted with using a socket
-  * [ ] Nicer (GUI?) front end
 * [ ] Easy to use API for writing drivers, and interacting with them
 * [ ] More device support
 
