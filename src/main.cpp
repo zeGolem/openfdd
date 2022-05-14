@@ -28,7 +28,11 @@ void handle_socket_connection(std::shared_ptr<socket_connection> connection,
 	connection->write_string("openfdd\n");
 
 	while (true) {
-		auto const& input = connection->read_line();
+		auto const& read_result = connection->read_line();
+
+		if (read_result.connection_is_over) return;
+
+		auto const& input = read_result.data;
 		auto const& input_argv =
 		    utils::split(input, ','); // TODO: Better parsing
 

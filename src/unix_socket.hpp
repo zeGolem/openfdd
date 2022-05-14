@@ -9,9 +9,14 @@
 class socket_connection
 {
   public:
+	struct read_result {
+		std::string const data;
+		bool              connection_is_over = false;
+	};
+
 	socket_connection(int fd);
 
-	std::string const read_line() const;
+	read_result const read_line() const;
 	void              write_string(std::string const&) const;
 
   private:

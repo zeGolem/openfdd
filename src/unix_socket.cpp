@@ -9,25 +9,25 @@
 
 socket_connection::socket_connection(int fd) : m_fd(fd) {}
 
-std::string const socket_connection::read_line() const
+socket_connection::read_result const socket_connection::read_line() const
 {
 	std::string data = "";
 
-	int read_result = 0;
+	char buffer{};
 
-	do {
-		char buffer{};
-		read_result = ::read(m_fd, &buffer, 1);
+	while (true) {
+		auto read_result = ::read(m_fd, &buffer, 1);
 
 		if (read_result < 0)
 			throw std::runtime_error("Can't read from socket!");
 
+		if (read_result == 0) return {.data = data, .connection_is_over = true};
+
 		if (buffer == '\n') break;
-
 		data += buffer;
-	} while (read_result != 0);
+	}
 
-	return data;
+	return {data};
 }
 
 void socket_connection::write_string(std::string const& data) const
