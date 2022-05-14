@@ -55,6 +55,10 @@ You can currently use the following commands:
 * `list-actions,<identifier>`  
  Sends the list of all actions available for the device matching the specified
  identifier.
+* `list-action-params,<identifier>,<action_id>`  
+ Sends the list of all the parameters for the specified action
+* `action-run,<identifier>,<action_id>,[...params]`
+ Runs the specified action with the given parameters
 
 The daemon itself will send a `done` after every response, and `fail,<reason>` when
 an error occurs.
