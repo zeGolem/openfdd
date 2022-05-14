@@ -26,8 +26,8 @@ usb_device::id usb_device::get_id() const
 
 usb_device::identifier usb_device::get_identifier() const noexcept
 {
-	return {.bus  = libusb_get_bus_number(m_device),
-	        .port = libusb_get_port_number(m_device)};
+	return {.bus    = libusb_get_bus_number(m_device),
+	        .device = libusb_get_device_address(m_device)};
 }
 
 int usb_device::control_transfer(std::uint8_t              request_type,

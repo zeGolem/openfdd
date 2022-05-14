@@ -2,6 +2,7 @@
 
 #include "utils.hpp"
 #include <cstdint>
+#include <cstdio>
 #include <functional>
 #include <iomanip>
 #include <libusb-1.0/libusb.h>
@@ -19,15 +20,17 @@ class usb_device
 	// Identifies a USB device plugged into the computer
 	struct identifier {
 		std::uint8_t bus;
-		std::uint8_t port;
+		std::uint8_t device;
 
 		std::string const stringify() const noexcept
 		{
-			std::stringstream ss;
-			ss << std::setfill('0') << std::setw(4) << std::hex << bus;
-			ss << ':';
-			ss << std::setfill('0') << std::setw(4) << std::hex << port;
-			return ss.str();
+			// TODO: This is a hack until we get std::format. String formatting
+			//       in c++ sucks without it.
+			char buffer[8] = {0};
+
+			std::snprintf(buffer, sizeof(buffer), "%03u:%03u", bus, device);
+
+			return std::string(buffer);
 		}
 
 		static identifier from(std::string const& identifier_string)
@@ -35,9 +38,12 @@ class usb_device
 			auto const& split_id = utils::split(identifier_string, ':');
 			if (split_id.size() < 2) return {};
 
-			// TODO: Size check! Add a util for safe stoi in base 16
-			return {.bus  = (std::uint8_t)std::stoi(split_id[0]),
-			        .port = (std::uint8_t)std::stoi(split_id[1])};
+			std::uint8_t bus =
+			    utils::stoi_safe(split_id[0], {.min = 0, .max = 256}, "Bus");
+			std::uint8_t device =
+			    utils::stoi_safe(split_id[1], {.min = 0, .max = 256}, "Device");
+
+			return {bus, device};
 		}
 	};
 
@@ -129,7 +135,7 @@ template <> struct std::hash<usb_device::identifier> {
 	std::size_t operator()(usb_device::identifier const& id) const noexcept
 	{
 		std::size_t h1 = std::hash<std::uint8_t>{}(id.bus);
-		std::size_t h2 = std::hash<std::uint8_t>{}(id.port);
+		std::size_t h2 = std::hash<std::uint8_t>{}(id.device);
 		return h1 ^ (h2 << 1);
 	}
 };
@@ -138,5 +144,5 @@ template <> struct std::hash<usb_device::identifier> {
 inline bool operator==(const usb_device::identifier& lhs,
                        const usb_device::identifier& rhs)
 {
-	return lhs.bus == rhs.bus && lhs.port == rhs.port;
+	return lhs.bus == rhs.bus && lhs.device == rhs.device;
 }
