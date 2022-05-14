@@ -123,6 +123,49 @@ get_socket_command_handlers()
 		return command_result::success;
 	};
 
+	DEFINE_SOCKET_COMMAND(action_run)
+	{
+		if (argv.size() < 3) {
+			// TODO: This should throw an error, but there's no proper error
+			//       handling yet...
+			// TODO: Handle errors thrown
+
+			connection->write_string("fail,Not enough arguements\n");
+			return command_result::failure;
+		}
+
+		auto const& driver_id = usb_device::identifier::from(argv[1]);
+		if (!drivers.contains(driver_id)) {
+			connection->write_string(
+			    "fail,Driver not found (got: " + driver_id.stringify() + ")\n");
+			return command_result::failure;
+		}
+
+		auto const& driver = drivers.at(driver_id);
+
+		auto const& action_id = argv[2];
+		auto const& actions   = driver->get_actions();
+
+		if (!actions.contains(action_id)) {
+			connection->write_string("fail,Action not found\n");
+			return command_result::failure;
+		}
+
+		auto const& action = actions.at(action_id);
+
+		// This checks if there are enough arguements
+		if (argv.size() < action.parameters.size() + 3) {
+			connection->write_string("fail,Not enough arguements\n");
+			return command_result::failure;
+		}
+
+		std::vector<std::string> action_params(argv.begin() + 3, argv.end());
+
+		driver->run_action(action_id, action_params);
+
+		return command_result::success;
+	};
+
 #undef DEFINE_SOCKET_COMMAND
 
 	return {
@@ -130,6 +173,7 @@ get_socket_command_handlers()
 	    {      "list-devices",       list_devices},
 	    {      "list-actions",       list_actions},
 	    {"list-action-params", list_action_params},
+	    {        "action-run",         action_run},
 	};
 }
 
