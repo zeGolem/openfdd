@@ -1,5 +1,6 @@
 #include "usb/device_manager.hpp"
 #include "usb.hpp"
+#include "utils.hpp"
 #include <libusb-1.0/libusb.h>
 #include <memory>
 #include <stdexcept>
@@ -19,6 +20,8 @@ void device_manager::handle_hotplugs()
 	       libusb_device*       device,
 	       libusb_hotplug_event event,
 	       void*                data) -> int {
+		    utils::daemon::log("Device got hot(un)plugged!");
+
 		    auto this_ = (device_manager*)data;
 
 		    if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED)
