@@ -31,7 +31,7 @@ class manager
 	identifiable_driver_map create_drivers_for_available_devices() const;
 
 	void start_hotplug_support(
-	    std::function<void(identifiable_driver_map new_driver_list)>
+	    std::function<void(identifiable_driver_map& new_driver_list)>
 	        driver_list_updated_callback);
 
   private:

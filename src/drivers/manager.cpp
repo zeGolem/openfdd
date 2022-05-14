@@ -4,7 +4,9 @@
 #include "drivers/steelseries/apex_100.hpp"
 #include "drivers/steelseries/rival_3_wireless.hpp"
 #include "usb.hpp"
+#include "utils.hpp"
 #include <memory>
+#include <stdexcept>
 
 namespace drivers
 {
@@ -36,13 +38,14 @@ identifiable_driver_map manager::create_drivers_for_available_devices() const
 }
 
 void manager::start_hotplug_support(
-    std::function<void(identifiable_driver_map new_driver_list)>
+    std::function<void(identifiable_driver_map& new_driver_list)>
         driver_list_updated_callback)
 {
-	m_device_manager.set_hotplug_notification([&driver_list_updated_callback,
-	                                           this]() {
-		driver_list_updated_callback(create_drivers_for_available_devices());
-	});
+	m_device_manager.set_hotplug_notification(
+	    [driver_list_updated_callback, this]() {
+		    auto drivers = create_drivers_for_available_devices();
+		    driver_list_updated_callback(drivers);
+	    });
 	m_device_manager.handle_hotplugs();
 }
 
