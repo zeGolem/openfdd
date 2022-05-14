@@ -72,6 +72,11 @@ get_socket_command_handlers()
 		}
 
 		auto const& driver_id = usb_device::identifier::from(argv[1]);
+		if (!drivers.contains(driver_id)) {
+			connection->write_string(
+			    "fail,Driver not found (got: " + driver_id.stringify() + ")\n");
+			return command_result::failure;
+		}
 
 		auto const& driver = drivers.at(driver_id);
 
