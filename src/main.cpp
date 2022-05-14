@@ -21,7 +21,7 @@
 constexpr auto SOCKET_PATH = "/var/run/openfdd.socket";
 
 void handle_socket_connection(std::shared_ptr<socket_connection> connection,
-                              drivers::identifiable_driver_map   drivers)
+                              drivers::identifiable_driver_map const& drivers)
 {
 	utils::daemon::log("New connection");
 
@@ -57,7 +57,7 @@ void handle_socket_connection(std::shared_ptr<socket_connection> connection,
 
 			auto const& driver_id = usb_device::identifier::from(input_argv[1]);
 
-			auto const& driver = drivers[driver_id];
+			auto const& driver = drivers.at(driver_id);
 
 			for (auto const& [action_id, action] : driver->get_actions())
 				connection->write_string(action_id + ',' + action.description +
