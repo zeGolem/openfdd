@@ -31,7 +31,11 @@ identifiable_driver_map manager::create_drivers_for_available_devices() const
 
 	for (auto const& [identifier, device] : m_device_manager.devices()) {
 		auto const& new_driver = create_driver_if_available(device);
-		if (new_driver.has_value()) map[identifier] = new_driver.value();
+		if (new_driver.has_value()) {
+			device->open(); // Make sure the device is opened so we can run
+			                // actions on it
+			map[identifier] = new_driver.value();
+		}
 	}
 
 	return map;
