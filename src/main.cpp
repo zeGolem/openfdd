@@ -116,7 +116,7 @@ void handle_socket_connection(std::shared_ptr<socket_connection> connection,
 		auto const& command_handlers = get_socket_command_handlers();
 
 		if (!command_handlers.contains(command)) {
-			connection->write_string("fail,No such command");
+			connection->write_string("fail,No such command\n");
 			continue;
 		}
 
