@@ -78,12 +78,32 @@ void daemon_main()
 
 	auto drivers = drv_manager.create_drivers_for_available_devices();
 
+	// TODO: Handle disconects!
+	std::vector<std::shared_ptr<socket_connection>> connections;
+
+	drv_manager.start_hotplug_support(
+	    [&drivers, &connections](auto new_driver_list) {
+		    drivers = new_driver_list;
+
+		    for (auto const& connection : connections)
+			    // TODO: Find a better/more generic way to do this!
+			    connection->write_string("notify,hotplug\n");
+	    });
+
 	try {
 		unix_socket socket(SOCKET_PATH);
 
 		socket.listen();
-		socket.wait_for_connection_and_accept([drivers](auto connection) {
-			handle_socket_connection(connection, drivers);
+		socket.wait_for_connection_and_accept([&drivers,
+		                                       &connections](auto connection) {
+			// TODO: Poor man's error handling, should be changed into a more
+			//       robust solution
+			try {
+				connections.push_back(connection);
+				handle_socket_connection(connection, drivers);
+			} catch (std::runtime_error& e) {
+				utils::daemon::log(e.what(), utils::daemon::log_level::error);
+			}
 		});
 	} catch (std::runtime_error const& e) {
 		utils::daemon::exit_error(e.what());
