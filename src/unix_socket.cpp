@@ -7,9 +7,9 @@
 #include <thread>
 #include <unistd.h>
 
-socket_connection::socket_connection(int fd) : m_fd(fd) {}
+socket_connection::socket_connection(int fd) : m_fd(fd), m_opened(true) {}
 
-socket_connection::read_result const socket_connection::read_line() const
+socket_connection::read_result const socket_connection::read_line()
 {
 	std::string data = "";
 
@@ -21,7 +21,10 @@ socket_connection::read_result const socket_connection::read_line() const
 		if (read_result < 0)
 			throw std::runtime_error("Can't read from socket!");
 
-		if (read_result == 0) return {.data = data, .connection_is_over = true};
+		if (read_result == 0) {
+			m_opened = false;
+			return {.data = data, .connection_is_over = true};
+		}
 
 		if (buffer == '\n') break;
 		data += buffer;

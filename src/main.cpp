@@ -82,16 +82,19 @@ void daemon_main()
 
 	auto drivers = drv_manager.create_drivers_for_available_devices();
 
-	// TODO: Handle disconects!
+	// TODO: Handle disconects! VERY IMPORTANT -> MEMORY LEAK!!
 	std::vector<std::shared_ptr<socket_connection>> connections;
 
 	drv_manager.start_hotplug_support(
 	    [&drivers, &connections](auto new_driver_list) {
 		    drivers = new_driver_list;
 
-		    for (auto const& connection : connections)
+		    for (auto const& connection : connections) {
+			    // TODO: This is a hack, need to remove closed connection
+			    if (!connection->opened()) continue;
 			    // TODO: Find a better/more generic way to do this!
 			    connection->write_string("notify,hotplug\n");
+		    }
 	    });
 
 	try {
