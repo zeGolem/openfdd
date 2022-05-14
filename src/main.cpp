@@ -11,14 +11,84 @@
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 // TODO: Make this user-definable!
 constexpr auto SOCKET_PATH = "/var/run/openfdd.socket";
+
+enum command_result {
+	success,
+	failure,
+};
+
+typedef std::function<command_result(
+    std::shared_ptr<socket_connection>      connection,
+    drivers::identifiable_driver_map const& drivers,
+    std::vector<std::string>                argv)>
+
+    socket_command_handler;
+
+std::unordered_map<std::string, socket_command_handler>
+get_socket_command_handlers()
+{
+#define DEFINE_SOCKET_COMMAND(name)                                            \
+	socket_command_handler name =                                              \
+	    [](std::shared_ptr<socket_connection>      connection,                 \
+	       drivers::identifiable_driver_map const& drivers,                    \
+	       std::vector<std::string>                argv) -> command_result
+
+	DEFINE_SOCKET_COMMAND(ping)
+	{
+		(void)drivers;
+		(void)argv;
+		connection->write_string("pong\n");
+		return command_result::success;
+	};
+
+	DEFINE_SOCKET_COMMAND(list_devices)
+	{
+		(void)argv;
+		for (auto const& [id, driver] : drivers)
+			connection->write_string(id.stringify() + "," + driver->name() +
+			                         '\n');
+		return command_result::success;
+	};
+
+	DEFINE_SOCKET_COMMAND(list_actions)
+	{
+		if (argv.size() < 2) {
+			// TODO: This should throw an error, but there's no proper error
+			//       handling yet...
+			// TODO: Handle errors thrown
+
+			connection->write_string("fail,Not enough arguements\n");
+			return command_result::failure;
+		}
+
+		auto const& driver_id = usb_device::identifier::from(argv[1]);
+
+		auto const& driver = drivers.at(driver_id);
+
+		for (auto const& [action_id, action] : driver->get_actions())
+			connection->write_string(action_id + ',' + action.description +
+			                         '\n');
+		return command_result::success;
+	};
+
+#undef DEFINE_SOCKET_COMMAND
+
+	return {
+	    {        "ping",         ping},
+	    {"list-devices", list_devices},
+	    {"list-actions", list_actions},
+	};
+}
 
 void handle_socket_connection(std::shared_ptr<socket_connection> connection,
                               drivers::identifiable_driver_map const& drivers)
@@ -38,37 +108,16 @@ void handle_socket_connection(std::shared_ptr<socket_connection> connection,
 
 		auto const& command = input_argv[0];
 
-		if (command == "ping")
-			connection->write_string("pong\n");
+		auto const& command_handlers = get_socket_command_handlers();
 
-		else if (command == "list-devices") {
-			// For each driver available
-			for (auto const& [id, driver] : drivers) {
-				connection->write_string(id.stringify() + "," + driver->name() +
-				                         '\n');
-			}
+		if (!command_handlers.contains(command)) {
+			connection->write_string("fail,No such command");
+			continue;
 		}
 
-		else if (command == "list-actions") {
-			if (input_argv.size() < 2) {
-				// TODO: This should throw an error, but there's no error
-				//       handling yet...
-				// TODO: Handle errors thrown
-
-				connection->write_string("fail,Not enough arguements\n");
-				continue;
-			}
-
-			auto const& driver_id = usb_device::identifier::from(input_argv[1]);
-
-			auto const& driver = drivers.at(driver_id);
-
-			for (auto const& [action_id, action] : driver->get_actions())
-				connection->write_string(action_id + ',' + action.description +
-				                         '\n');
-		}
-
-		connection->write_string("done\n");
+		if (command_handlers.at(command)(connection, drivers, input_argv) ==
+		    command_result::success)
+			connection->write_string("done\n");
 	}
 }
 
