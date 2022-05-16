@@ -119,7 +119,7 @@ void kill_all(std::string const& process_name)
 
 		if (executable_name == process_name) {
 			auto const& pid_string = current_process_dir.path().stem().string();
-			if (kill(std::stoi(pid_string), SIGKILL) < 0)
+			if (kill(std::stoi(pid_string), SIGTERM) < 0)
 				throw std::runtime_error("Couldn't kill process " + pid_string);
 		}
 	}
