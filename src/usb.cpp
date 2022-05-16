@@ -40,6 +40,7 @@ int usb_device::control_transfer(std::uint8_t              request_type,
 	if (!is_opened()) throw std::runtime_error("Device not opened!");
 
 	libusb_detach_kernel_driver(m_handle, w_index);
+	libusb_claim_interface(m_handle, w_index);
 
 	auto size = libusb_control_transfer(m_handle,
 	                                    request_type,
@@ -50,6 +51,7 @@ int usb_device::control_transfer(std::uint8_t              request_type,
 	                                    data.size(),
 	                                    timeout);
 
+	libusb_release_interface(m_handle, w_index);
 	libusb_attach_kernel_driver(m_handle, w_index);
 	return size;
 }
