@@ -228,7 +228,7 @@ void aerox_3_wireless::set_dpi(std::uint8_t               active_profile_id,
 	// converts from the 100-18000 human-readable value to the driver value
 	// for 0 to 0xd6
 	auto to_driver_dpi = [](std::uint16_t human_dpi) -> std::uint8_t {
-		return utils::scale(human_dpi, 100, 18'000, 0, 0xd6);
+		return utils::scale((float)human_dpi, 100, 18'000, 0, 0xd6);
 	};
 
 	for (std::size_t i = 0; i < dpi_profiles.size(); ++i)
