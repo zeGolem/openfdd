@@ -81,7 +81,8 @@ get_socket_command_handlers()
 		auto const& driver = drivers.at(driver_id);
 
 		for (auto const& [action_id, action] : driver->get_actions())
-			connection->write_string(action_id + ',' + action.description +
+			connection->write_string(action_id + ',' +
+			                         utils::escape_commas(action.description) +
 			                         '\n');
 		return command_result::success;
 	};
@@ -117,7 +118,8 @@ get_socket_command_handlers()
 		auto const& action = actions.at(action_id);
 
 		for (auto const& param : action.parameters)
-			connection->write_string(param.name + ',' + param.description +
+			connection->write_string(param.name + ',' +
+			                         utils::escape_commas(param.description) +
 			                         '\n');
 
 		return command_result::success;
