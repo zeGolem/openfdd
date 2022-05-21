@@ -56,4 +56,6 @@ std::vector<std::string> split(std::string const& input, char delimiter);
 
 void kill_all(std::string const& process_name);
 
+std::string escape_commas(std::string const& input);
+
 } // namespace utils

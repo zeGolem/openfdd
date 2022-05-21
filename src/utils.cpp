@@ -125,4 +125,16 @@ void kill_all(std::string const& process_name)
 	}
 }
 
+std::string escape_commas(std::string const& input)
+{
+	std::string output;
+
+	for (auto const& chr : input) {
+		if (chr == ',') output += '\\';
+		output += chr;
+	}
+
+	return output;
+}
+
 } // namespace utils
