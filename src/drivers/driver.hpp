@@ -15,15 +15,32 @@ namespace drivers
 {
 
 struct parameter {
-	enum param_type {
-		param_uint,
-		param_string,
-	} type;
+	enum type {
+		uint,
+		string,
+		rgb_color,
+		bool_,
+	};
+
+	struct uint_typeinfo {
+		std::uint32_t min = std::numeric_limits<std::uint32_t>::min();
+		std::uint32_t max = std::numeric_limits<std::uint32_t>::max();
+	};
+
+	type type;
+
+	union {
+		uint_typeinfo uint;
+	} type_info = {};
+
 	std::string name;
 	std::string description;
+
+	static constexpr std::string type_to_string(enum type const&) noexcept;
 };
 
 struct action {
+	std::string            name;
 	std::string            description;
 	std::vector<parameter> parameters;
 

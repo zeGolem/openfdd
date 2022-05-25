@@ -33,9 +33,11 @@ void apex_100::create_actions() noexcept
 		throw std::runtime_error("Missing arguements for " #action_name);
 
 	action backlight_luminosity{
+	    .name        = "Backlight luminosity",
 	    .description = "Backlight luminosity",
 	    .parameters  = {{
-	         .type        = parameter::param_uint,
+	         .type        = parameter::type::uint,
+	         .type_info   = {.uint = {.max = 100}},
 	         .name        = "luminosity",
 	         .description = "Luminosity percentage",
         }},
@@ -67,17 +69,18 @@ void apex_100::create_actions() noexcept
 	                backlight_luminosity,
 	                backlight_luminosity_handler);
 
-	action backlight_patterns{
-	    .description = "Backlight patterns",
+	action backlight_pattern{
+	    .name        = "Backlight pattern",
+	    .description = "Backlight pattern",
 	    .parameters  = {{
-	         .type = parameter::param_string,
+	         .type = parameter::type::string,
 	         .name = "pattern",
 	         .description =
                 "Pattern to use ('static', 'slow', 'medium', 'fast')",
         }},
 	};
 
-	auto backlight_patterns_handler =
+	auto backlight_pattern_handler =
 	    [this](std::vector<std::string> const& parameters) {
 		    if (parameters.size() < 1)
 			    throw std::runtime_error(
@@ -85,7 +88,7 @@ void apex_100::create_actions() noexcept
 
 		    auto pattern_string = parameters[0];
 
-		    backlight_pattern pattern;
+		    enum backlight_pattern pattern;
 		    if (pattern_string == "static")
 			    pattern = backlight_pattern::static_;
 		    else if (pattern_string == "slow")
@@ -103,14 +106,16 @@ void apex_100::create_actions() noexcept
 	    };
 
 	register_action(
-	    "backlight_patterns", backlight_patterns, backlight_patterns_handler);
+	    "backlight_pattern", backlight_pattern, backlight_pattern_handler);
 
 	action polling_interval{
+	    .name        = "Polling interval",
 	    .description = "Polling interval",
 	    .parameters  = {{
-	         .type        = parameter::param_uint,
+	         .type        = parameter::type::uint,
+	         .type_info   = {.uint = {.min = 1, .max = 4}},
 	         .name        = "interval",
-	         .description = "Interval between polls, between 1ms and 4ms",
+	         .description = "Interval between polls, in milliseconds",
         }},
 	};
 
@@ -140,6 +145,7 @@ void apex_100::create_actions() noexcept
 	    "polling_interval", polling_interval, polling_interval_handler);
 
 	action save{
+	    .name        = "Save",
 	    .description = "Save data to onboard memory",
 	    .parameters  = {},
 	};

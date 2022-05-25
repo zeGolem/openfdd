@@ -22,4 +22,17 @@ void driver::register_action(std::string const&     id,
 	m_action_handlers.insert({id, handler});
 }
 
+constexpr std::string parameter::type_to_string(enum type const& t) noexcept
+{
+	switch (t) {
+	case uint:
+		return "uint";
+	case string:
+		return "string";
+	case rgb_color:
+		return "rgb_color";
+	case bool_:
+		return "bool";
+	}
+}
 } // namespace drivers

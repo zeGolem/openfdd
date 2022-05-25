@@ -34,9 +34,11 @@ void rival_3_wireless::create_actions() noexcept
 		throw std::runtime_error("Missing arguements for " #action_name);
 
 	action dpi_presset{
+	    .name        = "Active DPI presset",
 	    .description = "Set the active DPI presset",
 	    .parameters  = {{
-	         .type        = parameter::param_uint,
+	         .type        = parameter::type::uint,
+	         .type_info   = {.uint = {.min = 1, .max = 5}},
 	         .name        = "presset",
 	         .description = "The presset to enable (1-5)",
         }},
@@ -65,16 +67,18 @@ void rival_3_wireless::create_actions() noexcept
 	register_action("dpi_presset", dpi_presset, dpi_presset_handler);
 
 	action dpi_presset_config{
+	    .name        = "DPI Presset Configuration",
 	    .description = "Configure a DPI presset",
 	    .parameters =
 	        {// clang-format off
 				{
-					.type        = parameter::param_uint,
+					.type        = parameter::type::uint,
+					.type_info   = {.uint = {.min = 1, .max = 5}},
 					.name        = "presset",
 					.description = "The presset to change (1-5)",
 				},
 				{
-					.type        = parameter::param_uint,
+					.type        = parameter::type::uint,
 					.name        = "value",
 					.description = "DPI value (100-18000)",
 				}
@@ -114,9 +118,11 @@ void rival_3_wireless::create_actions() noexcept
 	    "dpi_presset_config", dpi_presset_config, dpi_presset_config_handler);
 
 	action poll_interval{
+	    .name        = "Poll interval",
 	    .description = "Set the poll interval",
 	    .parameters  = {{
-	         .type        = parameter::param_uint,
+	         .type        = parameter::type::uint,
+	         .type_info   = {.uint = {.min = 1, .max = 4}},
 	         .name        = "interval",
 	         .description = "Interval between polls, in ms (1-4)",
         }},
@@ -146,9 +152,10 @@ void rival_3_wireless::create_actions() noexcept
 	register_action("poll_interval", poll_interval, poll_interval_handler);
 
 	action ultra_power_saving{
+	    .name        = "Ultra power saving",
 	    .description = "Ultra power saving mode",
 	    .parameters  = {{
-	         .type = parameter::param_string,
+	         .type = parameter::type::bool_,
 	         .name = "enabled",
 	         .description =
                 "Is Ultra Power Saving mode enabled? ('true' or 'false')",
@@ -173,9 +180,10 @@ void rival_3_wireless::create_actions() noexcept
 	    "ultra_power_saving", ultra_power_saving, ultra_power_saving_handler);
 
 	action smart_lighting{
+	    .name        = "Smart lighting",
 	    .description = "Smart lighting mode",
 	    .parameters  = {{
-	         .type = parameter::param_string,
+	         .type = parameter::type::string,
 	         .name = "enabled",
 	         .description =
                 "Is smart lighting mode enabled? ('true' or 'false')",
@@ -200,9 +208,11 @@ void rival_3_wireless::create_actions() noexcept
 	register_action("smart_lighting", smart_lighting, smart_lighting_handler);
 
 	action sleep_time{
+	    .name        = "Sleep time",
 	    .description = "Sleep time",
 	    .parameters  = {{
-	         .type        = parameter::param_uint,
+	         .type        = parameter::type::uint,
+	         .type_info   = {.uint = {.max = 0xff}},
 	         .name        = "time",
 	         .description = "Time before going to sleep (in seconds)",
         }},
@@ -235,6 +245,7 @@ void rival_3_wireless::create_actions() noexcept
 	register_action("sleep_time", sleep_time, sleep_time_handler);
 
 	action save{
+	    .name        = "Save",
 	    .description = "Save to onboard memory",
 	    .parameters  = {},
 	};

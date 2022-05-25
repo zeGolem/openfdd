@@ -37,9 +37,11 @@ void aerox_3_wireless::create_actions() noexcept
 		throw std::runtime_error("Missing arguements for " #action_name);
 
 	action dpi_profile{
+	    .name        = "Switch to DPI Profile",
 	    .description = "Set the current DPI profile",
 	    .parameters  = {{
-	         .type        = parameter::param_uint,
+	         .type        = parameter::type::uint,
+	         .type_info   = {.uint = {.min = 1, .max = 5}},
 	         .name        = "profile",
 	         .description = "The DPI profile to switch to",
         }},
@@ -60,18 +62,21 @@ void aerox_3_wireless::create_actions() noexcept
 	REGISTER_ACTION(dpi_profile);
 
 	action define_dpi_profile{
-	    .description = "Set the value of a DPI profile",
+	    .name        = "Define DPI profile",
+	    .description = "Set the DPI value of a profile",
  // Clang doesn't like this for some reason :/
   // clang-format off
 	    .parameters  = {
 			{
-				.type = parameter::param_uint,
-				.name = "profile",
+				.type        = parameter::type::uint,
+				.type_info   = {.uint = {.min = 1, .max = 5}},
+				.name        = "profile",
 				.description = "The profile to update",
 			},
 			{
-				.type = parameter::param_uint,
-				.name = "dpi",
+				.type        = parameter::type::uint,
+				.type_info   = {.uint = {.min = 100, .max = 18'000}},
+				.name        = "dpi",
 				.description = "The DPI to set the profile to",
 			},
 		},
@@ -95,20 +100,21 @@ void aerox_3_wireless::create_actions() noexcept
 	REGISTER_ACTION(define_dpi_profile);
 
 	action lighting_color{
+	    .name        = "Light color",
 	    .description = "Set the color of the lights",
  // Clang doesn't like this for some reason :/
   // clang-format off
 	    .parameters = {
 			{
-				.type        = parameter::param_uint,
+				.type        = parameter::type::uint,
+				.type_info   = {.uint = {.min = 1, .max = 3}},
 				.name        = "zone",
-				.description = "The zone to edit (between 1 and 3)",
+				.description = "The zone to edit",
 			},
 			{
-				 .type = parameter::param_string,
-				 .name = "color",
-				 .description =
-				 "The RGB color to change it to (ex. 'FFFFFF')",
+				 .type        = parameter::type::rgb_color,
+				 .name        = "color",
+				 .description = "The RGB color to change it to (ex. 'FFFFFF')",
 			},
 		},
   // clang-format on
@@ -135,11 +141,13 @@ void aerox_3_wireless::create_actions() noexcept
 	REGISTER_ACTION(lighting_color);
 
 	action polling_interval{
+	    .name        = "Polling interval",
 	    .description = "Sets the polling interval",
 	    .parameters  = {{
-	         .type        = parameter::param_uint,
+	         .type        = parameter::type::uint,
+	         .type_info   = {.uint = {.min = 1, .max = 4}},
 	         .name        = "interval",
-	         .description = "Interval between polls (1 to 4, 1 is faster)",
+	         .description = "Interval between polls (1 -> 1000Hz, 4 -> 250Hz)",
         }},
 	};
 
@@ -158,9 +166,11 @@ void aerox_3_wireless::create_actions() noexcept
 	REGISTER_ACTION(polling_interval);
 
 	action sleep_timeout{
+	    .name        = "Sleep timeout",
 	    .description = "Sets the sleep timeout, in seconds",
 	    .parameters  = {{
-	         .type        = parameter::param_uint,
+	         .type        = parameter::type::uint,
+	         .type_info   = {.uint = {.min = 0, .max = 1'200'000}},
 	         .name        = "timeout",
 	         .description = "The time in second before the mouse goes to sleep",
         }},
@@ -181,6 +191,7 @@ void aerox_3_wireless::create_actions() noexcept
 	REGISTER_ACTION(sleep_timeout);
 
 	action save{
+	    .name        = "Save",
 	    .description = "Save to onboard memory",
 	    .parameters  = {},
 	};
