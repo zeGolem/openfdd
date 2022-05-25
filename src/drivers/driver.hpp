@@ -36,7 +36,7 @@ struct parameter {
 	std::string name;
 	std::string description;
 
-	static constexpr std::string type_to_string(enum type const&) noexcept;
+	static std::string const type_to_string(enum type const&) noexcept;
 };
 
 struct action {

@@ -22,7 +22,7 @@ void driver::register_action(std::string const&     id,
 	m_action_handlers.insert({id, handler});
 }
 
-constexpr std::string parameter::type_to_string(enum type const& t) noexcept
+std::string const parameter::type_to_string(enum type const& t) noexcept
 {
 	switch (t) {
 	case uint:
