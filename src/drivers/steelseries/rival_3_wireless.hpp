@@ -16,6 +16,7 @@ class rival_3_wireless final : public driver
 	                 std::shared_ptr<config_manager> config)
 	    : driver(dev, config)
 	{
+		create_actions();
 		deserialize_config(config->get_device_config(config_id()));
 	}
 
