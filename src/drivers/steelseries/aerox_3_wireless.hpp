@@ -10,7 +10,7 @@ namespace drivers
 namespace steelseries
 {
 
-class aerox_3_wireless : public driver
+class aerox_3_wireless final : public driver
 {
   public:
 	aerox_3_wireless(std::shared_ptr<usb_device>     dev,

@@ -7,7 +7,7 @@ namespace drivers
 namespace steelseries
 {
 
-class apex_100 : public driver
+class apex_100 final : public driver
 {
   public:
 	enum backlight_pattern : std::uint8_t {

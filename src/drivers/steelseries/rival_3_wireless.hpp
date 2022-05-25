@@ -9,7 +9,7 @@ namespace drivers
 namespace steelseries
 {
 
-class rival_3_wireless : public driver
+class rival_3_wireless final : public driver
 {
   public:
 	rival_3_wireless(std::shared_ptr<usb_device>     dev,
