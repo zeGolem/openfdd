@@ -117,10 +117,20 @@ get_socket_command_handlers()
 
 		auto const& action = actions.at(action_id);
 
-		for (auto const& param : action.parameters)
-			connection->write_string(param.name + ',' +
-			                         utils::escape_commas(param.description) +
-			                         '\n');
+		for (auto const& param : action.parameters) {
+			auto response = param.name + ',' +
+			                utils::escape_commas(param.description) + ',' +
+			                drivers::parameter::type_to_string(param.type);
+
+			if (param.type == drivers::parameter::uint) {
+				response += ',';
+				response += std::to_string(param.type_info.uint.min);
+				response += ',';
+				response += std::to_string(param.type_info.uint.max);
+			}
+
+			connection->write_string(response + '\n');
+		}
 
 		return command_result::success;
 	};
