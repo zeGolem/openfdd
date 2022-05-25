@@ -34,5 +34,6 @@ std::string const parameter::type_to_string(enum type const& t) noexcept
 	case bool_:
 		return "bool";
 	}
+	return "unknown";
 }
 } // namespace drivers
