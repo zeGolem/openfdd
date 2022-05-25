@@ -81,7 +81,7 @@ get_socket_command_handlers()
 		auto const& driver = drivers.at(driver_id);
 
 		for (auto const& [action_id, action] : driver->get_actions())
-			connection->write_string(action_id + ',' +
+			connection->write_string(action_id + ',' + action.name + ',' +
 			                         utils::escape_commas(action.description) +
 			                         '\n');
 		return command_result::success;
