@@ -1,8 +1,10 @@
 #include "utils.hpp"
+#include "compile_config.hpp"
 #include <csignal>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -20,7 +22,11 @@ namespace daemon
 
 void log(std::string const& message, log_level ll)
 {
-	syslog(ll, "%s", message.c_str());
+	if constexpr (!compile_config::use_daemon)
+		// TODO: Handle log level when not running as a daemon
+		std::cout << "syslog: " << message << std::endl;
+	else
+		syslog(ll, "%s", message.c_str());
 }
 
 void exit_error(std::string const& error)
@@ -32,6 +38,14 @@ void exit_error(std::string const& error)
 // Inspired from https://gist.github.com/alexdlaird/3100f8c7c96871c5b94e
 void become()
 {
+	// If we're in "no daemon" mode (for debugging), don't do anything
+	if constexpr (!compile_config::use_daemon) {
+		log("Definitely a daemon now ;p");
+		log("(if the above message is unexpected, please recompile with "
+		    "compile_config::use_daemon enabled!)");
+		return;
+	}
+
 	// fork() splits the process in two. Both will run the same code, but pid
 	// will be 0 for the child and a positive value for the parent.
 	auto pid = fork();

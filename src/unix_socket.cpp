@@ -1,8 +1,10 @@
 #include "unix_socket.hpp"
+#include "compile_config.hpp"
 #include <cstring>
 #include <memory>
 #include <stdexcept>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/un.h>
 #include <thread>
 #include <unistd.h>

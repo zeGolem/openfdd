@@ -9,6 +9,7 @@ CXX=${CXX:-g++}
 
 build_dev() {
 	$CXX $SOURCES                     \
+		 -DNO_DAEMON                  \
 		 -lusb-1.0                    \
 		 -Isrc/                       \
 		 -fsanitize=address,undefined \
