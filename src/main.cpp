@@ -5,7 +5,8 @@
 #include "drivers/steelseries/apex_100.hpp"
 #include "drivers/steelseries/rival_3_wireless.hpp"
 #include "unix_socket.hpp"
-#include "usb.hpp"
+#include "usb/context.hpp"
+#include "usb/device.hpp"
 #include "usb/device_manager.hpp"
 #include "utils.hpp"
 #include <cstddef>
@@ -71,7 +72,7 @@ get_socket_command_handlers()
 			return command_result::failure;
 		}
 
-		auto const& driver_id = usb_device::identifier::from(argv[1]);
+		auto const& driver_id = usb::address::from(argv[1]);
 		if (!drivers.contains(driver_id)) {
 			connection->write_string(
 			    "fail,Driver not found (got: " + driver_id.stringify() + ")\n");
@@ -98,7 +99,7 @@ get_socket_command_handlers()
 			return command_result::failure;
 		}
 
-		auto const& driver_id = usb_device::identifier::from(argv[1]);
+		auto const& driver_id = usb::address::from(argv[1]);
 		if (!drivers.contains(driver_id)) {
 			connection->write_string(
 			    "fail,Driver not found (got: " + driver_id.stringify() + ")\n");
@@ -146,7 +147,7 @@ get_socket_command_handlers()
 			return command_result::failure;
 		}
 
-		auto const& driver_id = usb_device::identifier::from(argv[1]);
+		auto const& driver_id = usb::address::from(argv[1]);
 		if (!drivers.contains(driver_id)) {
 			connection->write_string(
 			    "fail,Driver not found (got: " + driver_id.stringify() + ")\n");
@@ -224,7 +225,7 @@ void daemon_main()
 {
 	utils::daemon::become();
 
-	usb_context         ctx;
+	usb::context        ctx;
 	usb::device_manager dev_manager(ctx);
 	drivers::manager    drv_manager(dev_manager);
 

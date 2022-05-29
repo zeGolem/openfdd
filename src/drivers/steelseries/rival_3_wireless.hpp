@@ -1,7 +1,7 @@
 #pragma once
 
 #include "drivers/driver.hpp"
-#include "usb.hpp"
+#include "usb/device.hpp"
 #include <memory.h>
 
 namespace drivers
@@ -12,7 +12,7 @@ namespace steelseries
 class rival_3_wireless final : public driver
 {
   public:
-	rival_3_wireless(std::shared_ptr<usb_device>     dev,
+	rival_3_wireless(std::shared_ptr<usb::device>    dev,
 	                 std::shared_ptr<config_manager> config)
 	    : driver(dev, config)
 	{
@@ -20,7 +20,7 @@ class rival_3_wireless final : public driver
 		deserialize_config(config->get_device_config(config_id()));
 	}
 
-	static bool is_compatible(std::shared_ptr<usb_device>);
+	static bool is_compatible(std::shared_ptr<usb::device>);
 
 	std::string config_id() const noexcept final
 	{

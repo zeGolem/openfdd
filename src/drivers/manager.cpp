@@ -3,7 +3,7 @@
 #include "drivers/steelseries/aerox_3_wireless.hpp"
 #include "drivers/steelseries/apex_100.hpp"
 #include "drivers/steelseries/rival_3_wireless.hpp"
-#include "usb.hpp"
+#include "usb/device.hpp"
 #include "utils.hpp"
 #include <memory>
 #include <stdexcept>
@@ -12,7 +12,7 @@ namespace drivers
 {
 
 std::optional<std::shared_ptr<driver>> manager::create_driver_if_available(
-    std::shared_ptr<usb_device> device) const
+    std::shared_ptr<usb::device> device) const
 {
 #define CHECK_DRIVER(drv)                                                      \
 	if (drv::is_compatible(device))                                            \

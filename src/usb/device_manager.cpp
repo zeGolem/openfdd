@@ -1,5 +1,6 @@
 #include "usb/device_manager.hpp"
-#include "usb.hpp"
+#include "usb/context.hpp"
+#include "usb/device.hpp"
 #include "utils.hpp"
 #include <libusb-1.0/libusb.h>
 #include <memory>
@@ -11,7 +12,7 @@ namespace usb
 
 void device_manager::handle_hotplugs()
 {
-	if (!usb_context::supports_hotplug())
+	if (!usb::context::supports_hotplug())
 		throw std::runtime_error("Hotplug isn't supported!");
 
 	m_context.register_hotplug_callback(
@@ -25,9 +26,9 @@ void device_manager::handle_hotplugs()
 		    auto this_ = (device_manager*)data;
 
 		    if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED)
-			    this_->register_device(std::make_shared<usb_device>(device));
+			    this_->register_device(std::make_shared<usb::device>(device));
 		    else
-			    this_->unregister_device(usb_device(device).get_identifier());
+			    this_->unregister_device(usb::device(device).get_address());
 
 		    if (this_->m_hotplug_notification) this_->m_hotplug_notification();
 

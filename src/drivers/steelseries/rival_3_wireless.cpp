@@ -1,6 +1,6 @@
 #include "rival_3_wireless.hpp"
 #include "steelseries.hpp"
-#include "usb.hpp"
+#include "usb/device.hpp"
 #include <memory.h>
 #include <string>
 #include <vector>
@@ -10,9 +10,9 @@ namespace drivers
 namespace steelseries
 {
 
-bool rival_3_wireless::is_compatible(std::shared_ptr<usb_device> device)
+bool rival_3_wireless::is_compatible(std::shared_ptr<usb::device> device)
 {
-	auto id = device->get_id();
+	auto id = device->get_descriptor_id();
 	if (id.id_vendor == steelseries::vendor_id && id.id_product == 0x1830)
 		return true;
 	return false;

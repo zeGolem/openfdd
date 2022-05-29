@@ -2,7 +2,7 @@
 
 #include "3rd_party/json.hpp"
 #include "config.hpp"
-#include "usb.hpp"
+#include "usb/device.hpp"
 #include <cstdint>
 #include <functional>
 #include <limits>
@@ -50,11 +50,11 @@ struct action {
 class driver
 {
   public:
-	driver(std::shared_ptr<usb_device>     dev,
+	driver(std::shared_ptr<usb::device>    dev,
 	       std::shared_ptr<config_manager> config)
 	    : m_device(dev), m_config_manager(config){};
 
-	static bool is_compatible(usb_device*) { return false; }
+	static bool is_compatible(usb::device*) { return false; }
 
 	virtual std::string config_id() const noexcept = 0;
 
@@ -89,7 +89,7 @@ class driver
 
 	virtual void create_actions() noexcept = 0;
 
-	std::shared_ptr<usb_device>     m_device;
+	std::shared_ptr<usb::device>    m_device;
 	std::shared_ptr<config_manager> m_config_manager;
 
 	std::unordered_map<std::string, action const>    m_actions;

@@ -1,6 +1,6 @@
 #pragma once
 #include "drivers/driver.hpp"
-#include "usb.hpp"
+#include "usb/device.hpp"
 
 namespace drivers
 {
@@ -17,7 +17,7 @@ class apex_100 final : public driver
 		fast    = 4,
 	};
 
-	apex_100(std::shared_ptr<usb_device>     dev,
+	apex_100(std::shared_ptr<usb::device>    dev,
 	         std::shared_ptr<config_manager> config)
 	    : driver(dev, config)
 	{
@@ -25,7 +25,7 @@ class apex_100 final : public driver
 		deserialize_config(config->get_device_config(config_id()));
 	}
 
-	static bool is_compatible(std::shared_ptr<usb_device>);
+	static bool is_compatible(std::shared_ptr<usb::device>);
 
 	std::string config_id() const noexcept final
 	{

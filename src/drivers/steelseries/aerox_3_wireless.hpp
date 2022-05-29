@@ -1,6 +1,6 @@
 #pragma once
 #include "drivers/driver.hpp"
-#include "usb.hpp"
+#include "usb/device.hpp"
 #include <array>
 #include <cstdint>
 #include <vector>
@@ -13,7 +13,7 @@ namespace steelseries
 class aerox_3_wireless final : public driver
 {
   public:
-	aerox_3_wireless(std::shared_ptr<usb_device>     dev,
+	aerox_3_wireless(std::shared_ptr<usb::device>    dev,
 	                 std::shared_ptr<config_manager> config)
 	    : driver(dev, config)
 	{
@@ -21,7 +21,7 @@ class aerox_3_wireless final : public driver
 		create_actions();
 	}
 
-	static bool is_compatible(std::shared_ptr<usb_device>);
+	static bool is_compatible(std::shared_ptr<usb::device>);
 
 	std::string config_id() const noexcept final
 	{

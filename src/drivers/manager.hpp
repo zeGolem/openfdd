@@ -2,7 +2,7 @@
 
 #include "config.hpp"
 #include "drivers/driver.hpp"
-#include "usb.hpp"
+#include "usb/device.hpp"
 #include "usb/device_manager.hpp"
 #include <functional>
 #include <memory>
@@ -12,7 +12,7 @@
 namespace drivers
 {
 
-typedef std::unordered_map<usb_device::identifier, std::shared_ptr<driver>>
+typedef std::unordered_map<usb::address, std::shared_ptr<driver>>
     identifiable_driver_map;
 
 class manager
@@ -26,7 +26,7 @@ class manager
 	}
 
 	std::optional<std::shared_ptr<driver>> create_driver_if_available(
-	    std::shared_ptr<usb_device> device) const;
+	    std::shared_ptr<usb::device> device) const;
 
 	identifiable_driver_map create_drivers_for_available_devices() const;
 

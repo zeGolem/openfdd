@@ -1,5 +1,6 @@
 #include "apex_100.hpp"
 #include "steelseries.hpp"
+#include "usb/device.hpp"
 #include <memory.h>
 #include <string>
 #include <vector>
@@ -9,9 +10,9 @@ namespace drivers
 namespace steelseries
 {
 
-bool apex_100::is_compatible(std::shared_ptr<usb_device> dev)
+bool apex_100::is_compatible(std::shared_ptr<usb::device> dev)
 {
-	auto id = dev->get_id();
+	auto id = dev->get_descriptor_id();
 	if (id.id_vendor == steelseries::vendor_id && id.id_product == 0x160e)
 		return true;
 	return false;

@@ -9,6 +9,8 @@
 
 #include "3rd_party/json.hpp"
 
+#include "usb/device.hpp"
+
 class config_manager
 {
   public:
