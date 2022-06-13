@@ -226,7 +226,7 @@ void aerox_3_wireless::set_dpi(std::uint8_t               active_profile_id,
 	    0x6d, // Packet ID
 	    (std::uint8_t)
 	        dpi_profiles.size(), // It's safe to cast to u8 because we check
-	                             // the value at the sstart of the function
+	                             // the value at the start of the function
 	    active_profile_id,
 	    // Those are the DPI values for each profile. We will set them right
 	    // after
